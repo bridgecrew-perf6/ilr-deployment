@@ -5,6 +5,8 @@ import dash_bootstrap_components as dbc
 
 #from app import app
 import home ##, ebc, group_ratio, Tax_EBITDA, equity_ratio, summary, disallowance
+import ebc
+
 
 dash_app = dash.Dash(__name__, suppress_callback_exceptions=True,
                      external_stylesheets=[dbc.themes.ZEPHYR, dbc.icons.BOOTSTRAP])
@@ -109,8 +111,8 @@ def display_page(pathname):
         return home.layout
     # elif pathname == '/summary':
     #     return summary.layout
-    # elif pathname == '/exceeding-borrowing-costs':
-    #     return ebc.layout
+    elif pathname == '/exceeding-borrowing-costs':
+        return ebc.layout
     # elif pathname == '/tax-ebitda':
     #     return Tax_EBITDA.layout
     # elif pathname == '/group-ratio':
