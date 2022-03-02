@@ -478,7 +478,7 @@ def results_export(data):
         return data_list
 
 
-#########################################################################
+
 ##--------------EBC Callbacks------------------------------------------
 
 ##-------------------------------EBC CALLBACKS--------------------------------
@@ -786,7 +786,6 @@ def clear_output(n_clicks):
 @dash_app.callback(
     Output('amount_description', 'children'),
     Input('spot_rate_store', 'data')
-    # Input('currency_dd', 'value')
 )
 def change_text(spot_rate_store):
     if spot_rate_store != [{}]:
@@ -809,7 +808,6 @@ def change_text(spot_rate_store):
 @dash_app.callback(
     Output('pbi_description_currency', 'children'),
     Input('spot_rate_store', 'data')
-    # Input('currency_dd', 'value')
 )
 def change_text(spot_rate_store):
     if spot_rate_store != [{}]:
@@ -833,7 +831,6 @@ def change_text(spot_rate_store):
 @dash_app.callback(
     Output('ebc_amount_in_euro_text', 'style'),
     Input('spot_rate_store', 'data'),
-    # Input('currency_dd', 'value'),
     Input('ebc_amount_input', 'value'),
 )
 def show_hide_element(spot_rate_store, amount):
@@ -855,9 +852,7 @@ def show_hide_element(spot_rate_store, amount):
 @dash_app.callback(
     Output('ebc_amount_in_euro_text', 'children'),
     Input('spot_rate_store', 'data'),
-    #   Input('currency_dd', 'value'),
-    Input('ebc_amount_input', 'value'),
-    #   Input('spot_rate_input', 'value')
+    Input('ebc_amount_input', 'value')
 )
 def show_hide_element(spot_rate_store, amount):
     if spot_rate_store != [{}]:
@@ -892,7 +887,6 @@ def show_hide_element(spot_rate_store, amount):
     Output('ebc_amount_in_euro_value', 'children'),
     Input('spot_rate_store', 'data'),
     Input('ebc_amount_input', 'value'),
-    #   Input('spot_rate_input', 'value')
 )
 def show_hide_element(spot_rate_store, amount):
     if spot_rate_store != [{}]:
@@ -904,7 +898,6 @@ def show_hide_element(spot_rate_store, amount):
                 float(spot_rate)
                 value = float(float(amount) / float(spot_rate))
                 return '{:,.2f}'.format(value)
-                # return round(float(float(amount) / float(spot_rate)), 2)
             except ValueError:
                 return ""
 
@@ -914,7 +907,6 @@ def show_hide_element(spot_rate_store, amount):
 @dash_app.callback(
     Output('ebc_pbi_amount_in_euro_text', 'style'),
     Input('spot_rate_store', 'data'),
-    # Input('currency_dd', 'value'),
     Input('ebc_pbi_input', 'value'),
 )
 def show_hide_element(spot_rate_store, amount):
@@ -936,9 +928,7 @@ def show_hide_element(spot_rate_store, amount):
 @dash_app.callback(
     Output('ebc_pbi_amount_in_euro_text', 'children'),
     Input('spot_rate_store', 'data'),
-    #   Input('currency_dd', 'value'),
     Input('ebc_pbi_input', 'value'),
-    #   Input('spot_rate_input', 'value')
 )
 def show_hide_element(spot_rate_store, amount):
     if spot_rate_store != [{}]:
@@ -984,7 +974,6 @@ def show_hide_element(spot_rate_store, amount):
                 float(spot_rate)
                 value = float(float(amount) / float(spot_rate))
                 return '{:,.2f}'.format(value)
-                # return round(float(float(amount) / float(spot_rate)), 2)
             except ValueError:
                 return ""
 
@@ -992,7 +981,6 @@ def show_hide_element(spot_rate_store, amount):
 ##-----------EBC CALCULATION CALLBACK----------
 
 @dash_app.callback(Output('ebc-output', 'children'),
-                   # Input('ebc-calculate', 'n_clicks'),
                    Input('ebc_table', 'data')
                    )
 def ebc_calc(data):
@@ -1028,8 +1016,7 @@ def ebc_calc(data):
 
         tot_sum = sum1 - sum2 - sum3
         formatted_tot_sum = '€{:,.2f}'.format(tot_sum)
-        # n_clicks=0
-        return formatted_tot_sum  # , n_clicks
+        return formatted_tot_sum
 
 
 ##-----------EBC WORKINGS CALLBACK------------
@@ -1059,7 +1046,6 @@ def company_dropdown(data):
 
 
 @dash_app.callback(Output('ebc-workings-output', 'children'),
-                   # Input('ebc-workings', 'n_clicks'),
                    Input('ebc_table', 'data'),
                    Input('ebc_company_workings_dd', 'value')
                    )
@@ -1076,7 +1062,6 @@ def ebc_calc(data, company_selected):
         int_income33 = 0
 
         if company_selected == 'All' or company_selected == '' or company_selected is None:
-            # pbi_expense_sum = 0
             for row in data:
                 if row['Interest Type'] == "Interest Expense":
                     try:
@@ -1110,7 +1095,6 @@ def ebc_calc(data, company_selected):
                             taxsum2 = taxsum2 + float(row['Amount (€)'])
                         if row['Legacy Debt'] == 'Y':
                             legacyDebtSum25 = legacyDebtSum25 + float(row['Amount (€)'])
-                        # taxsum2 = taxsum2 + float(row['Amount (€)'])
                     elif float(row['Tax Rate (%)']) == 33:
                         try:
                             float(row['PBI Amount (€)'])
@@ -1142,7 +1126,6 @@ def ebc_calc(data, company_selected):
                             int_income25 = int_income25 + float(float(row['Amount (€)']) - float(row['PBI Amount (€)']))
                         except ValueError:
                             int_income12 = int_income12 + float(row['Amount (€)'])
-                        # taxsum2 = taxsum2 + float(row['Amount (€)'])
                     elif float(row['Tax Rate (%)']) == 33:
                         try:
                             float(row['PBI Amount (€)'])
@@ -1184,7 +1167,6 @@ def ebc_calc(data, company_selected):
                                 taxsum2 = taxsum2 + float(row['Amount (€)'])
                             if row['Legacy Debt'] == 'Y':
                                 legacyDebtSum25 = legacyDebtSum25 + float(row['Amount (€)'])
-                            # taxsum2 = taxsum2 + float(row['Amount (€)'])
                         elif float(row['Tax Rate (%)']) == 33:
                             try:
                                 float(row['PBI Amount (€)'])
@@ -1218,7 +1200,6 @@ def ebc_calc(data, company_selected):
                                     float(row['Amount (€)']) - float(row['PBI Amount (€)']))
                             except ValueError:
                                 int_income12 = int_income12 + float(row['Amount (€)'])
-                            # taxsum2 = taxsum2 + float(row['Amount (€)'])
                         elif float(row['Tax Rate (%)']) == 33:
                             try:
                                 float(row['PBI Amount (€)'])
@@ -1353,7 +1334,6 @@ def ebc_calc(data, company_selected):
             html.Div(html.U(html.B('Interest Income (Ignore PBI)')), style={'font-size': '80%'}),
             dbc.Row([
                 dbc.Col([
-                    # html.Div(html.U('Interest Expense (Ignore PBI)'), style={'font-size': '80%'}),
                     html.Div('Interest Income @ 12.5%: ', style={'font-size': '80%'}),
                     html.Br(),
                     html.Div('Interest Income @ 25%: ', style={'font-size': '80%'}),
@@ -1389,13 +1369,11 @@ def ebc_calc(data, company_selected):
                 )
             ]),
         ])
-        # n_clicks=0
         return workings
 
 
 ##-----------EBC DM WORKINGS CALLBACK------------------
 @dash_app.callback(Output('ebc-dm-workings-output', 'children'),
-                   # Input('ebc-dm-workings', 'n_clicks'),
                    Input('ebc_table', 'data'),
                    Input('ebc_company_workings_dd', 'value')
                    )
@@ -1715,8 +1693,6 @@ def bold(switch):
                    )
 def ebc_calc(inputted_data, results_columns):
     num_rows = len(inputted_data)
-    # if num_rows == 0:
-    #     return []
     if num_rows > 0:
         results_data = []
 
@@ -1781,7 +1757,6 @@ def ebc_calc(inputted_data, results_columns):
         groupsum4 = groupsum5 = groupsum6 = 0
         for row in inputted_data:
             group = row['Group']
-            #            if row['Group'] == group:
             if row['Interest Type'] == "Interest Expense":
                 try:
                     pbi_val = float(row['PBI Amount (€)'])
@@ -1825,7 +1800,6 @@ def ebc_calc(inputted_data, results_columns):
         return results_data
 
 
-##############################################################################
 # ---------------------Tax EBITDA-----------------------------------
 
 ##-------------------------------TAX EBITDA VARIABLES--------------------------
@@ -2132,7 +2106,6 @@ def show_hide_element(currency):
 @dash_app.callback(
     Output('ebitda_amount_in_euro_text', 'style'),
     Input('spot_rate_store', 'data'),
-    # Input('ebitda_currency_dd', 'value'),
     Input('amount_input_ebitda', 'value'),
 )
 def show_hide_element(spot_rate_store, amount):
@@ -2201,7 +2174,6 @@ def show_hide_element(spot_rate_store, amount):
                 float(spot_rate)
                 value = float(float(amount) / float(spot_rate))
                 return '{:,.2f}'.format(value)
-                # return round(float(float(amount) / float(spot_rate)), 2)
             except ValueError:
                 return ""
 
@@ -2266,7 +2238,6 @@ def show_hide_element(spot_rate_store, amount):
     Output('ebitda_loss_in_euro_value', 'children'),
     Input('spot_rate_store', 'data'),
     Input('input_loss_ebitda', 'value'),
-    # Input('ebitda_spot_rate_input', 'value')
 )
 def show_hide_element(spot_rate_store, amount):
     if spot_rate_store != [{}]:
@@ -2373,7 +2344,6 @@ def show_hide_element(spot_rate_store, amount):
     Output('ebitda_pbi_amount_in_euro_text', 'children'),
     Input('spot_rate_store', 'data'),
     Input("input_pbipp_ebitda", 'value'),
-    # Input('ebitda_spot_rate_input', 'value')
 )
 def show_hide_element(spot_rate_store, amount):
     if spot_rate_store != [{}]:
@@ -2408,7 +2378,6 @@ def show_hide_element(spot_rate_store, amount):
     Output('ebitda_pbi_amount_in_euro_value', 'children'),
     Input('spot_rate_store', 'data'),
     Input("input_pbipp_ebitda", 'value'),
-    # Input('ebitda_spot_rate_input', 'value')
 )
 def show_hide_element(spot_rate_store, amount):
     if spot_rate_store != [{}]:
@@ -2420,7 +2389,6 @@ def show_hide_element(spot_rate_store, amount):
                 float(spot_rate)
                 value = float(float(amount) / float(spot_rate))
                 return '{:,.2f}'.format(value)
-                # return round(float(float(amount) / float(spot_rate)), 2)
             except ValueError:
                 return ""
 
@@ -2451,7 +2419,6 @@ def show_hide_element(spot_rate_store, amount):
     Output('ebitda_pbi_interest_amount_in_euro_text', 'children'),
     Input('spot_rate_store', 'data'),
     Input("input_deduct_ebitda", 'value'),
-    # Input('ebitda_spot_rate_input', 'value')
 )
 def show_hide_element(spot_rate_store, amount):
     if spot_rate_store != [{}]:
@@ -2486,7 +2453,6 @@ def show_hide_element(spot_rate_store, amount):
     Output('ebitda_pbi_interest_amount_in_euro_value', 'children'),
     Input('spot_rate_store', 'data'),
     Input("input_deduct_ebitda", 'value'),
-    # Input('ebitda_spot_rate_input', 'value')
 )
 def show_hide_element(spot_rate_store, amount):
     if spot_rate_store != [{}]:
@@ -2498,7 +2464,6 @@ def show_hide_element(spot_rate_store, amount):
                 float(spot_rate)
                 value = float(float(amount) / float(spot_rate))
                 return '{:,.2f}'.format(value)
-                # return round(float(float(amount) / float(spot_rate)), 2)
             except ValueError:
                 return ""
 
@@ -2622,7 +2587,6 @@ def handling_inputs_ebc_company(data_list: list, dictkey: str, company_entered: 
     :param data_list: list containing a dictionary having values
     :return: values from ebc in float format
     """
-    #   data_dict = data_list[0]
     val = 0.0
     for data_dict in data_list:
         if data_dict['Company'] == company_entered:
@@ -2659,7 +2623,6 @@ def calculate_tax_ebitda(data: list, ebc_dict: list, debt_dict: list) -> str:
         if ebc_dict == [{}]:
             return "Not yet calculated"
         else:
-            # if debt_dict == [{}]:
             borrowing_cost = handling_inputs_ebc(ebc_dict, 'ebc')
             legacy_debt_cost = handling_inputs_ebc(debt_dict, 'intcalc')
             tax_Ebitda = borrowing_cost + legacy_debt_cost
@@ -3009,7 +2972,6 @@ def return_lim_spar_cap(data, ebc_dict):
 
             all_companies1 = ebc_companies + tax_companies
             all_companies = sorted(list(set(all_companies1)))
-            # if n_clicks != 0:
             lim_spare_cap = 0
             for row in data:
                 if row['EBITDA Category'] == "Limitation Spare Capacity Carried Forward":
@@ -3119,7 +3081,6 @@ def ebitda_calc(inputted_data, results_columns, ebc_dict, debt_dict):
                 = sum_deduct_finances = sum_balance_charges = 0.0
             for row in inputted_data:
                 if row['Company'] == company:
-                    # group = row['Group']
                     if row['EBITDA Category'] == "Relevant Profits (Taxable Profits)":
                         sum_profit = (float(row['Amount (€)']) - float(row['Loss (€)']) - float(row['PBIE (€)'])) \
                                      * float(row['Tax Rate (%)']) / corporate_tax
@@ -3260,7 +3221,6 @@ def ebitda_calc(inputted_data, results_columns, ebc_dict, debt_dict):
                    Input(component_id='inputA', component_property='value'),
                    Input(component_id='inputB', component_property='value'))
 def get_group_ratio(inputA, inputB):
-    # print(inputA)
     if inputA is not None and inputB is not None:
         group_ratio = round(int(inputA) / int(inputB), 4)
         group_ratio_percent = round(int(inputA) / int(inputB), 4) * 100
@@ -3297,13 +3257,11 @@ def gr_workings(inputA, inputB):
 
     else:
         if inputA is None:
-            # inputA_value = "Please Enter Details"
             inputA_value = ""
         else:
             inputA_value = str(inputA)
 
         if inputB is None:
-            # inputB_value = "Please Enter Details"
             inputB_value = ""
         else:
             inputB_value = str(inputB)
@@ -3653,9 +3611,6 @@ def formatting(xDict, xKey, fail):
 # ----------RESULTS IN TABLE---------------------------------
 @dash_app.callback(
     Output('dis-output', 'children'),
-    # Input('dis-calculate', 'n_clicks'),
-    # Input('within-output', 'children'),
-    # Input('sign-output', 'children'),
     Input('ebc_store', 'data'),
     Input('group_ratio_store', 'data'),
     Input('tax_ebitda_store', 'data'),
@@ -3784,7 +3739,6 @@ def disallowanceformula(ebcPre, groupRatPre, ebitdaPre, iscPre, intcalcPre, erGr
     Input('tax_ebitda_store_lim_spare_cap', 'data')
 )
 def disallowance_workings(ebcPre, groupRatPre, ebitdaPre, iscPre, intcalcPre, erGroupPre, erWrldPre, lscPre):
-    # if n_clicks > 0:
     # Call our formatting functions
     ebc1 = euroformatting(ebcPre, "ebc", 0)
     groupRat = formatting(groupRatPre, "group_ratio", 0)
@@ -4090,7 +4044,6 @@ def disallowance_workings(ebcPre, groupRatPre, ebitdaPre, iscPre, intcalcPre, er
                     [
                         dbc.Row([
                             dbc.Col([
-                                # html.Div(html.U('Amount:')),
                                 html.Div("Interest Spare Capacity:", style={'font-size': '80%'}),
                                 html.Div("LESS Exceeding Borrowing Costs:", style={'font-size': '80%'}),
                                 html.Div('Total:', style={'font-size': '80%'}),
@@ -4099,7 +4052,6 @@ def disallowance_workings(ebcPre, groupRatPre, ebitdaPre, iscPre, intcalcPre, er
                             ], width=6),
 
                             dbc.Col([
-                                # html.Br(),
                                 html.Div('€{:,.2f}'.format(intcalc),
                                          style={'text-align': 'right', 'font-size': '80%'}),
                                 html.Div(html.U('€{:,.2f}'.format(ebc1)),
@@ -4194,7 +4146,6 @@ def disallowanceImport(data):
 )
 ### Limited Spare Capacity needed
 def return_disallowance(ebcPre, groupRatPre, ebitdaPre, iscPre, intcalcPre, erGroupPre, erWrldPre, lscPre):
-    # if n_clicks > 0:
     # Call our formatting functions
     if ebcPre != [{}] and groupRatPre != [{}] and ebitdaPre != [{}] and iscPre != [{}] and intcalcPre != [
         {}] and erGroupPre != [{}] and erWrldPre != [{}] and lscPre != [{}]:
@@ -4402,67 +4353,67 @@ def equity_ratio_w(equity_ratio):
 
 ##-------GET DISALLOWANCE FORMULA VALUE FROM STORE CALLBACK-----------
 
-# @dash_app.callback(Output(component_id='summary-disallowance-output', component_property='children'),
-#                    Input('disallowance_store', 'data'),
-#                    )
-# def disallowance_(disallowance):
-#     if disallowance == [{}]:
-#         output = dbc.Row([
-#             dbc.Col([html.Div("Not yet calculated")], width=6)
-#         ])
-#         return output
-#     else:
-#         if isinstance(disallowance, str):
-#             output = disallowance
-#             return output
-#         else:
-#             disallowanceDict = disallowance[0]
-#             if len(disallowanceDict) == 2:
-#                 output = html.Div([
-#                     dbc.Row([
-#                         dbc.Col([html.Div('')], width=6),
-#                         dbc.Col([html.Div(html.B('Amount'))], width=3),
-#                         dbc.Col([html.Div(html.B('Tax Value'))], width=3)
-#                     ]),
-#                     dbc.Row([
-#                         dbc.Col([
-#                             html.Div('Interest Spare Capacity: '),
-#                         ], width=6),
-#                         dbc.Col([
-#                             html.Div('€{:,.2f}'.format(disallowanceDict["intSpareCap"])),
-#                         ], width=3),
-#                         dbc.Col([
-#                             html.Div('€{:,.2f}'.format(disallowanceDict["intSpareCapTax"])),
-#
-#                         ], width=3)
-#                     ])
-#
-#                 ])
-#             elif len(disallowanceDict) == 6:
-#                 output = html.Div([
-#                     dbc.Row([
-#                         dbc.Col([html.Div("")], width=6),
-#                         dbc.Col([html.Div(html.B("Amount"))], width=3),
-#                         dbc.Col([html.Div(html.B("Tax Value"))], width=3),
-#
-#                     ]),
-#                     dbc.Row([
-#                         dbc.Col([html.Div("Disallowance Applied:")], width=6),
-#                         dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["disAmount"]))], width=3),
-#                         dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["disAmountTax"]))], width=3),
-#                     ]),
-#                     dbc.Row([
-#                         dbc.Col([html.Div("Total Spare Capacity:")], width=6),
-#                         dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["totSpareCap"]))], width=3),
-#                         dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["totSpareCapTax"]))], width=3),
-#                     ]),
-#                     dbc.Row([
-#                         dbc.Col([html.Div("Interest Spare Capacity:")], width=6),
-#                         dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["intSpareCap"]))], width=3),
-#                         dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["intSpareCapTax"]))], width=3),
-#                     ])
-#                 ])
-#         return output
+@dash_app.callback(Output(component_id='summary-disallowance-output', component_property='children'),
+                   Input('disallowance_store', 'data'),
+                   )
+def disallowance_(disallowance):
+    if disallowance == [{}]:
+        output = dbc.Row([
+            dbc.Col([html.Div("Not yet calculated")], width=6)
+        ])
+        return output
+    else:
+        if isinstance(disallowance, str):
+            output = disallowance
+            return output
+        else:
+            disallowanceDict = disallowance[0]
+            if len(disallowanceDict) == 2:
+                output = html.Div([
+                    dbc.Row([
+                        dbc.Col([html.Div('')], width=6),
+                        dbc.Col([html.Div(html.B('Amount'))], width=3),
+                        dbc.Col([html.Div(html.B('Tax Value'))], width=3)
+                    ]),
+                    dbc.Row([
+                        dbc.Col([
+                            html.Div('Interest Spare Capacity: '),
+                        ], width=6),
+                        dbc.Col([
+                            html.Div('€{:,.2f}'.format(disallowanceDict["intSpareCap"])),
+                        ], width=3),
+                        dbc.Col([
+                            html.Div('€{:,.2f}'.format(disallowanceDict["intSpareCapTax"])),
+
+                        ], width=3)
+                    ])
+
+                ])
+            elif len(disallowanceDict) == 6:
+                output = html.Div([
+                    dbc.Row([
+                        dbc.Col([html.Div("")], width=6),
+                        dbc.Col([html.Div(html.B("Amount"))], width=3),
+                        dbc.Col([html.Div(html.B("Tax Value"))], width=3),
+
+                    ]),
+                    dbc.Row([
+                        dbc.Col([html.Div("Disallowance Applied:")], width=6),
+                        dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["disAmount"]))], width=3),
+                        dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["disAmountTax"]))], width=3),
+                    ]),
+                    dbc.Row([
+                        dbc.Col([html.Div("Total Spare Capacity:")], width=6),
+                        dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["totSpareCap"]))], width=3),
+                        dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["totSpareCapTax"]))], width=3),
+                    ]),
+                    dbc.Row([
+                        dbc.Col([html.Div("Interest Spare Capacity:")], width=6),
+                        dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["intSpareCap"]))], width=3),
+                        dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["intSpareCapTax"]))], width=3),
+                    ])
+                ])
+        return output
 
     # callback - defines which page each URL sends the user to
 
