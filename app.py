@@ -4402,91 +4402,70 @@ def equity_ratio_w(equity_ratio):
 
 ##-------GET DISALLOWANCE FORMULA VALUE FROM STORE CALLBACK-----------
 
-# @dash_app.callback(Output(component_id='summary-disallowance-output', component_property='children'),
-#                    Input('disallowance_store', 'data'),
-#                    )
-# def disallowance_(disallowance):
-#     if disallowance == [{}]:
-#         output = dbc.Row([
-#             dbc.Col([html.Div("Not yet calculated")], width=6)
-#         ])
-#         return output
-#     else:
-#         if isinstance(disallowance, str):
-#             output = disallowance
-#             return output
-#         else:
-#             disallowanceDict = disallowance[0]
-#             if len(disallowanceDict) == 2:
-#                 output = html.Div([
-#                     dbc.Row([
-#                         dbc.Col([html.Div('')], width=6),
-#                         dbc.Col([html.Div(html.B('Amount'))], width=3),
-#                         dbc.Col([html.Div(html.B('Tax Value'))], width=3)
-#                     ]),
-#                     dbc.Row([
-#                         dbc.Col([
-#                             html.Div('Interest Spare Capacity: '),
-#                         ], width=6),
-#                         dbc.Col([
-#                             html.Div('€{:,.2f}'.format(disallowanceDict["intSpareCap"])),
-#                         ], width=3),
-#                         dbc.Col([
-#                             html.Div('€{:,.2f}'.format(disallowanceDict["intSpareCapTax"])),
-#
-#                         ], width=3)
-#                     ])
-#
-#                 ])
-#             elif len(disallowanceDict) == 6:
-#                 output = html.Div([
-#                     dbc.Row([
-#                         dbc.Col([html.Div("")], width=6),
-#                         dbc.Col([html.Div(html.B("Amount"))], width=3),
-#                         dbc.Col([html.Div(html.B("Tax Value"))], width=3),
-#
-#                     ]),
-#                     dbc.Row([
-#                         dbc.Col([html.Div("Disallowance Applied:")], width=6),
-#                         dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["disAmount"]))], width=3),
-#                         dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["disAmountTax"]))], width=3),
-#                     ]),
-#                     dbc.Row([
-#                         dbc.Col([html.Div("Total Spare Capacity:")], width=6),
-#                         dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["totSpareCap"]))], width=3),
-#                         dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["totSpareCapTax"]))], width=3),
-#                     ]),
-#                     dbc.Row([
-#                         dbc.Col([html.Div("Interest Spare Capacity:")], width=6),
-#                         dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["intSpareCap"]))], width=3),
-#                         dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["intSpareCapTax"]))], width=3),
-#                     ])
-#                 ])
-#         return output
+@dash_app.callback(Output(component_id='summary-disallowance-output', component_property='children'),
+                   Input('disallowance_store', 'data'),
+                   )
+def disallowance_(disallowance):
+    if disallowance == [{}]:
+        output = dbc.Row([
+            dbc.Col([html.Div("Not yet calculated")], width=6)
+        ])
+        return output
+    else:
+        if isinstance(disallowance, str):
+            output = disallowance
+            return output
+        else:
+            disallowanceDict = disallowance[0]
+            if len(disallowanceDict) == 2:
+                output = html.Div([
+                    dbc.Row([
+                        dbc.Col([html.Div('')], width=6),
+                        dbc.Col([html.Div(html.B('Amount'))], width=3),
+                        dbc.Col([html.Div(html.B('Tax Value'))], width=3)
+                    ]),
+                    dbc.Row([
+                        dbc.Col([
+                            html.Div('Interest Spare Capacity: '),
+                        ], width=6),
+                        dbc.Col([
+                            html.Div('€{:,.2f}'.format(disallowanceDict["intSpareCap"])),
+                        ], width=3),
+                        dbc.Col([
+                            html.Div('€{:,.2f}'.format(disallowanceDict["intSpareCapTax"])),
+
+                        ], width=3)
+                    ])
+
+                ])
+            elif len(disallowanceDict) == 6:
+                output = html.Div([
+                    dbc.Row([
+                        dbc.Col([html.Div("")], width=6),
+                        dbc.Col([html.Div(html.B("Amount"))], width=3),
+                        dbc.Col([html.Div(html.B("Tax Value"))], width=3),
+
+                    ]),
+                    dbc.Row([
+                        dbc.Col([html.Div("Disallowance Applied:")], width=6),
+                        dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["disAmount"]))], width=3),
+                        dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["disAmountTax"]))], width=3),
+                    ]),
+                    dbc.Row([
+                        dbc.Col([html.Div("Total Spare Capacity:")], width=6),
+                        dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["totSpareCap"]))], width=3),
+                        dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["totSpareCapTax"]))], width=3),
+                    ]),
+                    dbc.Row([
+                        dbc.Col([html.Div("Interest Spare Capacity:")], width=6),
+                        dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["intSpareCap"]))], width=3),
+                        dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["intSpareCapTax"]))], width=3),
+                    ])
+                ])
+        return output
 
     # callback - defines which page each URL sends the user to
 
-
-# @dash_app.callback(Output('page-content', 'children'),
-#                    Input('url', 'pathname'))
-# def display_page(pathname):
-#     if pathname == '/':
-#         return home.layout
-#     elif pathname == '/summary':
-#         return summary.layout
-#     elif pathname == '/exceeding-borrowing-costs':
-#         return ebc.layout
-#     elif pathname == '/tax-ebitda':
-#         return Tax_EBITDA.layout
-#     elif pathname == '/group-ratio':
-#         return group_ratio.layout
-#     elif pathname == '/equity-ratio':
-#         return equity_ratio.layout
-#     elif pathname == '/disallowance-formula':
-#         return disallowance.layout
-#     else:
-#         return '404'
-#
 
 @dash_app.callback(
     Output('page-content', 'children'),
