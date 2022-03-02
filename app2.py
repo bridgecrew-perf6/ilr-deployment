@@ -4066,7 +4066,6 @@ def return_ebitda(data):
                         datalist = datalist + [
                             {'Company': company, 'Group': group, 'tax_ebitda': '€{}'.format(tax_ebitda)}]
 
-            # print(datalist)
             return datalist
 
 
@@ -4124,7 +4123,7 @@ def return_lim_spar_cap(data, ebc_dict):
                                 comp_lim_spare_cap = comp_lim_spare_cap + float(row['Amount (€)'])
                     datalist = datalist + [
                         {'Company': company, 'Group': group, 'limit_spare_capacity': comp_lim_spare_cap}]
-        # print(datalist)
+
         return datalist
 
 
