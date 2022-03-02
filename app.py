@@ -5,8 +5,7 @@ from dash.dependencies import Input, Output, State
 import pandas as pd
 from dash.exceptions import PreventUpdate
 
-import home, ebc, group_ratio, Tax_EBITDA, equity_ratio, summary, disallowance
-
+import home, ebc, group_ratio, Tax_EBITDA, equity_ratio, summary, disallowance, login
 
 corporate_tax = 12.5
 kpmgBlue_hash = '#00338D'
@@ -103,7 +102,44 @@ dash_app.layout = html.Div([
     dcc.Store(id='spot_rate_store', data=[{}], storage_type="session")
 ])
 
+
 ##-----------------------------CALLBACKS---------------------------------------------------------
+
+##-------------------------LOGIN CALLBACKS------------------------------------------------------
+################################################################################################
+
+@dash_app.callback(
+    [Output('output1', 'children'),
+     Output('login_store', 'data')],
+    Input('verify', 'n_clicks'),
+    State('user', 'value'),
+    State('passw', 'value')
+)
+def update_output(n_clicks, uname, passw):
+    li = {'tax': 'tax123'}
+
+    if uname == '' or uname == None or passw == '' or passw == None:
+        login_details = [{}]
+        return html.Div(children='', style={'padding-left': '550px', 'padding-top': '10px'}), login_details
+    if uname not in li:
+        login_details = [{}]
+        return html.Div(children='Incorrect Username or Password.',
+                        style={'margin-left': '35%', 'padding': '10px', 'padding-top': '40px',
+                               'font-size': '16px'}), login_details
+    if li[uname] == passw:
+        login_details = [{'uname': 'tax', 'passw': 'tax123'}]
+        return html.Div(dcc.Link('Access Granted!', href='/home',
+                                 style={'color': '#183d22', 'font-weight': 'bold', "text-decoration": "none",
+                                        'font-size': '20px'}),
+                        style={'margin-left': '35%', 'padding': '10px', 'padding-top': '40px', 'font-size': '16px',
+                               'padding-top': '40px'}), login_details
+    else:
+        login_details = [{}]
+        return html.Div(children='Incorrect Username or Password.',
+                        style={'margin-left': '35%', 'padding': '10px', 'padding-top': '40px',
+                               'font-size': '16px'}), login_details
+
+
 
 ##--------------------------HOME CALLBACKS--------------------------------------------------------
 #################################################################################################
@@ -166,7 +202,6 @@ def produce_home_datatable(n_clicks, rows, columns, group, company, interest_gro
                     columns[i]['id']: results_home[i] for i in range(0, len(home_df.columns))
                 })
     return rows
-
 
 
 ##-------Update Initial Store Values--------
@@ -457,6 +492,7 @@ column_names = ['Group', 'Company', 'Interest Type', 'Amount (€)', 'Tax Rate (
                 'PBI Amount (€)', 'Text Description']
 ebc_df = pd.DataFrame(columns=column_names)
 
+
 # Hide PBI until user clicks "Yes"
 @dash_app.callback(
     Output(component_id='ebc_pbi_input', component_property='style'),
@@ -580,8 +616,9 @@ def produce_home_datatable(n_clicks, rows, columns, group_dd, company_dd, intere
                                 legacy_value = 'Y'
                             else:
                                 legacy_value = 'N'
-                            results_ebc = [group_dd, company_dd, interest_dd, '{:,.2f}'.format(float(euro_amount)), tax_dd, legacy_value,
-                                            '{:,.2f}'.format(float(euro_pbi)), text]
+                            results_ebc = [group_dd, company_dd, interest_dd, '{:,.2f}'.format(float(euro_amount)),
+                                           tax_dd, legacy_value,
+                                           '{:,.2f}'.format(float(euro_pbi)), text]
 
                             rows.append({
                                 columns[i]['id']: results_ebc[i] for i in range(0, len(ebc_df.columns))
@@ -594,7 +631,8 @@ def produce_home_datatable(n_clicks, rows, columns, group_dd, company_dd, intere
                                 legacy_value = 'Y'
                             else:
                                 legacy_value = 'N'
-                            results_ebc = [group_dd, company_dd, interest_dd, '{:,.2f}'.format(float(euro_amount)), tax_dd, legacy_value,
+                            results_ebc = [group_dd, company_dd, interest_dd, '{:,.2f}'.format(float(euro_amount)),
+                                           tax_dd, legacy_value,
                                            0, text]
 
                             rows.append({
@@ -603,20 +641,23 @@ def produce_home_datatable(n_clicks, rows, columns, group_dd, company_dd, intere
 
                     if interest_dd == 'Interest Income':
                         if euro_amount not in forbidden2 and tax_dd not in forbidden2 and euro_pbi not in forbidden2:
-                            results_ebc = [group_dd, company_dd, interest_dd, '{:,.2f}'.format(float(euro_amount)), tax_dd, '',
+                            results_ebc = [group_dd, company_dd, interest_dd, '{:,.2f}'.format(float(euro_amount)),
+                                           tax_dd, '',
                                            '{:,.2f}'.format(float(euro_pbi)), text]
                             rows.append({
                                 columns[i]['id']: results_ebc[i] for i in range(0, len(ebc_df.columns))
                             })
                         if euro_amount not in forbidden2 and tax_dd not in forbidden2 and euro_pbi in forbidden2:
-                            results_ebc = [group_dd, company_dd, interest_dd,  '{:,.2f}'.format(float(euro_amount)), tax_dd, '', 0, text]
+                            results_ebc = [group_dd, company_dd, interest_dd, '{:,.2f}'.format(float(euro_amount)),
+                                           tax_dd, '', 0, text]
                             rows.append({
                                 columns[i]['id']: results_ebc[i] for i in range(0, len(ebc_df.columns))
                             })
 
                     if interest_dd == 'Interest Spare Capacity':
                         if euro_amount not in forbidden2:
-                            results_ebc = [group_dd, company_dd, interest_dd, '{:,.2f}'.format(float(euro_amount)), '', '', '', text]
+                            results_ebc = [group_dd, company_dd, interest_dd, '{:,.2f}'.format(float(euro_amount)), '',
+                                           '', '', text]
 
                             rows.append({
                                 columns[i]['id']: results_ebc[i] for i in range(0, len(ebc_df.columns))
@@ -641,7 +682,6 @@ def return_ebc(data, columns):
     text = [''] * len(data)
 
     for (i, row) in zip(range(0, len(data)), data):
-
         groups[i] = row['Group']
         companies[i] = row['Company']
         interest_types[i] = row['Interest Type']
@@ -713,6 +753,7 @@ def clear_output(n_clicks):
 def clear_output(n_clicks):
     if n_clicks > 0:
         return False
+
 
 @dash_app.callback(
     Output('ebc_pbi_input', 'value'),
@@ -863,7 +904,7 @@ def show_hide_element(spot_rate_store, amount):
                 float(spot_rate)
                 value = float(float(amount) / float(spot_rate))
                 return '{:,.2f}'.format(value)
-                #return round(float(float(amount) / float(spot_rate)), 2)
+                # return round(float(float(amount) / float(spot_rate)), 2)
             except ValueError:
                 return ""
 
@@ -932,7 +973,6 @@ def show_hide_element(spot_rate_store, amount):
     Output('ebc_pbi_amount_in_euro_value', 'children'),
     Input('spot_rate_store', 'data'),
     Input('ebc_pbi_input', 'value'),
-    #   Input('spot_rate_input', 'value')
 )
 def show_hide_element(spot_rate_store, amount):
     if spot_rate_store != [{}]:
@@ -944,7 +984,7 @@ def show_hide_element(spot_rate_store, amount):
                 float(spot_rate)
                 value = float(float(amount) / float(spot_rate))
                 return '{:,.2f}'.format(value)
-                #return round(float(float(amount) / float(spot_rate)), 2)
+                # return round(float(float(amount) / float(spot_rate)), 2)
             except ValueError:
                 return ""
 
@@ -1167,20 +1207,23 @@ def ebc_calc(data, company_selected):
                         if float(row['Tax Rate (%)']) == 12.5:
                             try:
                                 float(row['PBI Amount (€)'])
-                                int_income12 = int_income12 + float(float(row['Amount (€)']) - float(row['PBI Amount (€)']))
+                                int_income12 = int_income12 + float(
+                                    float(row['Amount (€)']) - float(row['PBI Amount (€)']))
                             except ValueError:
                                 int_income12 = int_income12 + float(row['Amount (€)'])
                         elif float(row['Tax Rate (%)']) == 25:
                             try:
                                 float(row['PBI Amount (€)'])
-                                int_income25 = int_income25 + float(float(row['Amount (€)']) - float(row['PBI Amount (€)']))
+                                int_income25 = int_income25 + float(
+                                    float(row['Amount (€)']) - float(row['PBI Amount (€)']))
                             except ValueError:
                                 int_income12 = int_income12 + float(row['Amount (€)'])
                             # taxsum2 = taxsum2 + float(row['Amount (€)'])
                         elif float(row['Tax Rate (%)']) == 33:
                             try:
                                 float(row['PBI Amount (€)'])
-                                int_income33 = int_income33 + float(float(row['Amount (€)']) - float(row['PBI Amount (€)']))
+                                int_income33 = int_income33 + float(
+                                    float(row['Amount (€)']) - float(row['PBI Amount (€)']))
                             except ValueError:
                                 int_income33 = int_income33 + float(row['Amount (€)'])
 
@@ -1781,8 +1824,9 @@ def ebc_calc(inputted_data, results_columns):
         })
         return results_data
 
+
 ##############################################################################
-#---------------------Tax EBITDA-----------------------------------
+# ---------------------Tax EBITDA-----------------------------------
 
 ##-------------------------------TAX EBITDA VARIABLES--------------------------
 
@@ -2596,7 +2640,6 @@ def handling_inputs_ebc_company(data_list: list, dictkey: str, company_entered: 
 
 
 @dash_app.callback(Output('tax_ebitda_output', 'children'),
-                   # Input('tax_ebitda', 'n_clicks'),
                    Input('ebitda_table', 'data'),
                    State('ebc_store', 'data'),
                    State('ebc_store_intcalc', 'data')
@@ -3124,8 +3167,6 @@ def ebitda_calc(inputted_data, results_columns, ebc_dict, debt_dict):
             gtax_ebitda = 0
             gborrowing_cost = 0
             glegacy_debt_cost = 0
-            # gborrowing_cost = handling_inputs_ebc_company(ebc_dict, 'ebc', 'All')
-            # glegacy_debt_cost = handling_inputs_ebc_company(debt_dict, 'intcalc', 'All')
             gsum_profit = 0
             gsum_taxable_profit = 0
             gsum_credit_profit = 0
@@ -3160,12 +3201,6 @@ def ebitda_calc(inputted_data, results_columns, ebc_dict, debt_dict):
 
             for row in inputted_data:
                 if row['Group'] == group:
-                    # company_borrowing_cost = handling_inputs_ebc_company(ebc_dict, 'ebc', row['Company'])
-                    # gborrowing_cost = gborrowing_cost + company_borrowing_cost
-
-                    # company_legacy_debt_cost = handling_inputs_ebc_company(debt_dict, 'intcalc', row['Company'])
-                    # glegacy_debt_cost = glegacy_debt_cost + company_legacy_debt_cost
-
                     if row['EBITDA Category'] == "Relevant Profits (Taxable Profits)":
                         company_taxable_profit = (float(row['Amount (€)']) - float(row['Loss (€)']) - float(
                             row['PBIE (€)'])) \
@@ -3216,283 +3251,203 @@ def ebitda_calc(inputted_data, results_columns, ebc_dict, debt_dict):
 
         return results_data
 
+##-------------------------------GROUP RATIO CALLBACKS--------------------------
+
+##--------GROUP RATIO CALCULATION CALLBACK--------
 
 
-    ##-------------------------------GROUP RATIO CALLBACKS--------------------------
+@dash_app.callback(Output('group_ratio_output', 'children'),
+                   Input(component_id='inputA', component_property='value'),
+                   Input(component_id='inputB', component_property='value'))
+def get_group_ratio(inputA, inputB):
+    # print(inputA)
+    if inputA is not None and inputB is not None:
+        group_ratio = round(int(inputA) / int(inputB), 4)
+        group_ratio_percent = round(int(inputA) / int(inputB), 4) * 100
+        return "{}%".format(group_ratio_percent)
+    else:
+        return "Not calculated yet - Please enter details"
 
-    ##--------GROUP RATIO CALCULATION CALLBACK--------
 
-    @dash_app.callback(Output('group_ratio_output', 'children'),
-                       Input(component_id='inputA', component_property='value'),
-                       Input(component_id='inputB', component_property='value'))
-    def get_group_ratio(inputA, inputB):
-        if inputA is not None and inputB is not None:
-            group_ratio = round(int(inputA) / int(inputB), 4)
-            group_ratio_percent = round(int(inputA) / int(inputB), 4) * 100
-            return "{}%".format(group_ratio_percent)
+##--------GROUP RATIO STORE CALLBACK-------------
+@dash_app.callback(
+    Output('group_ratio_store', 'data'),
+    Input('group_ratio_output', 'children')
+)
+def return_group_ratio(group_ratio_percent):
+    if group_ratio_percent[-1] == "%":
+        group_ratio = round(float(group_ratio_percent[:-1]) / 100, 4)
+    else:
+        group_ratio = group_ratio_percent
+    data = [{'group_ratio': group_ratio}]
+    return data
+
+
+##--------------storing entries -------------------
+
+
+@dash_app.callback(
+    Output('group_ratio_workings', 'children'),
+    Input('inputA', 'value'),
+    Input('inputB', 'value')
+)
+def gr_workings(inputA, inputB):
+    if inputA is None or inputB is None:
+        workings = ''
+
+    else:
+        if inputA is None:
+            # inputA_value = "Please Enter Details"
+            inputA_value = ""
         else:
-            return "Not calculated yet - Please enter details"
+            inputA_value = str(inputA)
 
-    ##--------GROUP RATIO STORE CALLBACK-------------
-    @dash_app.callback(
-        Output('group_ratio_store', 'data'),
-        Input('group_ratio_output', 'children')
-    )
-    def return_group_ratio(group_ratio_percent):
-        if group_ratio_percent[-1] == "%":
-            group_ratio = round(float(group_ratio_percent[:-1]) / 100, 4)
+        if inputB is None:
+            # inputB_value = "Please Enter Details"
+            inputB_value = ""
         else:
-            group_ratio = group_ratio_percent
-        data = [{'group_ratio': group_ratio}]
-        return data
+            inputB_value = str(inputB)
 
-    ##--------------storing entries -------------------
+        try:
+            float(inputA_value) and float(inputB_value)
+            value_final = round(float(inputA_value) / float(inputB_value), 4)
+            value_final_pct = '{}%'.format(round(100 * value_final, 4))
+        except ValueError:
+            value_final = ''
+            value_final_pct = ''
 
-    @dash_app.callback(
-        Output('group_ratio_workings', 'children'),
-        Input('inputA', 'value'),
-        Input('inputB', 'value')
-    )
-    def gr_workings(inputA, inputB):
-        if inputA is None or inputB is None:
-            workings = ''
+        workings = dbc.Row([
+            dbc.Col([
+                html.Div("Worldwide Group Net Finance Expense From Consolidated Financial Statements: ",
+                         style={'font-size': '80%'}),
+                html.Div("DIVIDED BY Worldwide Group EBITDA From Consolidated Financial Statements: ",
+                         style={'font-size': '80%'}),
+                html.Div("=", style={'font-size': '80%'}),
+                html.Div("%", style={'font-size': '80%'}),
+            ],
+                width=6),
 
+            dbc.Col([
+                html.Div("{}".format(inputA_value), style={'text-align': 'right', 'font-size': '80%'}),
+                html.Div(html.U("{}".format(inputB_value)), style={'text-align': 'right', 'font-size': '80%'}),
+                html.Div("{}".format(value_final), style={'text-align': 'right', 'font-size': '80%'}),
+                html.Div(html.B("{}".format(value_final_pct)), style={'text-align': 'right', 'font-size': '80%'}),
+            ],
+                width=2),
+        ])
+
+    return workings
+
+
+##-------------------------------EQUITY RATIO CALLBACKS--------------------------
+
+###---TOGGLE SWITCH COLOUR CALLBACKS---
+# To make option selected by toggle switch bold and blue
+
+@dash_app.callback(
+    Output('eq_no', 'children'),
+    Input('eq_toggle_switch', 'value')
+)
+def bold(switch):
+    if switch:
+        return html.H6("No", style={'color': '#D4D4D4'})
+    else:
+        return html.H6(html.B("No"), style={'color': kpmgBlue_hash})
+
+@dash_app.callback(
+    Output('eq_yes', 'children'),
+    Input('eq_toggle_switch', 'value')
+)
+def bold(switch):
+    if switch:
+        return html.H6(html.B("Yes"), style={'color': kpmgBlue_hash})
+    else:
+        return html.H6("Yes", style={'color': '#D4D4D4'})
+
+# Hide Debt from associated enterprises Input box
+@dash_app.callback(
+    Output('debt_assoc_enterprise', 'style'),
+    Input('eq_toggle_switch', 'value'),
+)
+def show_hide_element(toggle):
+    if toggle:
+        return {'display': 'block'}
+    else:
+        return {'display': 'none'}
+
+@dash_app.callback(
+    Output('debt_assoc_enterprise_title', 'style'),
+    Input('eq_toggle_switch', 'value'),
+)
+def show_hide_element(toggle):
+    if toggle:
+        return {'display': 'block', 'font-size': '100%'}
+    else:
+        return {'display': 'none'}
+
+##---------INTEREST EQUITY RATIO CALCULATION CALLBACK----------
+@dash_app.callback([Output('er_outputA', 'children'), Output('equity_ratio_store_group', 'data')],
+                   Input(component_id='inputE', component_property='value'),
+                   Input(component_id='inputF', component_property='value'),
+                   Input(component_id='eq_toggle_switch', component_property='value'),
+                   Input(component_id='debt_assoc_enterprise', component_property='value')
+                   )
+def get_equity_ratio(inputE, inputF, toggle, debt):
+    if toggle:
+        if inputE is not None and inputF is not None and debt is not None:
+            A_calc_percent = round((float(inputE) - float(debt)) / float(inputF), 5) * 100
+            group = A_calc_percent / 100
+            data = [{'group': group}]
+            return ["{:.2f}%".format(A_calc_percent), data]
         else:
-            if inputA is None:
-                # inputA_value = "Please Enter Details"
-                inputA_value = ""
-            else:
-                inputA_value = str(inputA)
-
-            if inputB is None:
-                # inputB_value = "Please Enter Details"
-                inputB_value = ""
-            else:
-                inputB_value = str(inputB)
-
-            try:
-                float(inputA_value) and float(inputB_value)
-                value_final = round(float(inputA_value) / float(inputB_value), 4)
-                value_final_pct = '{}%'.format(round(100 * value_final, 4))
-            except ValueError:
-                value_final = ''
-                value_final_pct = ''
-
-            workings = dbc.Row([
-                dbc.Col([
-                    html.Div("Worldwide Group Net Finance Expense From Consolidated Financial Statements: ",
-                             style={'font-size': '80%'}),
-                    html.Div("DIVIDED BY Worldwide Group EBITDA From Consolidated Financial Statements: ",
-                             style={'font-size': '80%'}),
-                    html.Div("=", style={'font-size': '80%'}),
-                    html.Div("%", style={'font-size': '80%'}),
-                ],
-                    width=6),
-
-                dbc.Col([
-                    html.Div("{}".format(inputA_value), style={'text-align': 'right', 'font-size': '80%'}),
-                    html.Div(html.U("{}".format(inputB_value)), style={'text-align': 'right', 'font-size': '80%'}),
-                    html.Div("{}".format(value_final), style={'text-align': 'right', 'font-size': '80%'}),
-                    html.Div(html.B("{}".format(value_final_pct)), style={'text-align': 'right', 'font-size': '80%'}),
-                ],
-                    width=2),
-            ])
-
-        return workings
-
-
-
-    ##-------------------------------EQUITY RATIO CALLBACKS--------------------------
-
-    ###---TOGGLE SWITCH COLOUR CALLBACKS---
-    # To make option selected by toggle switch bold and blue
-
-    @dash_app.callback(
-        Output('eq_no', 'children'),
-        Input('eq_toggle_switch', 'value')
-    )
-    def bold(switch):
-        if switch:
-            return html.H6("No", style={'color': '#D4D4D4'})
+            data = [{'group': "Not calculated yet - Please enter details"}]
+            return ["Not calculated yet - Please enter details", data]
+    if not toggle:
+        if inputE is not None and inputF is not None:
+            A_calc_percent = round((float(inputE)) / float(inputF), 5) * 100
+            group = A_calc_percent / 100
+            data = [{'group': group}]
+            return ["{:.2f}%".format(A_calc_percent), data]
         else:
-            return html.H6(html.B("No"), style={'color': kpmgBlue_hash})
-
-    @dash_app.callback(
-        Output('eq_yes', 'children'),
-        Input('eq_toggle_switch', 'value')
-    )
-    def bold(switch):
-        if switch:
-            return html.H6(html.B("Yes"), style={'color': kpmgBlue_hash})
-        else:
-            return html.H6("Yes", style={'color': '#D4D4D4'})
-
-    # Hide Debt from associated enterprises Input box
-    @dash_app.callback(
-        Output('debt_assoc_enterprise', 'style'),
-        Input('eq_toggle_switch', 'value'),
-    )
-    def show_hide_element(toggle):
-        if toggle:
-            return {'display': 'block'}
-        else:
-            return {'display': 'none'}
-
-    @dash_app.callback(
-        Output('debt_assoc_enterprise_title', 'style'),
-        Input('eq_toggle_switch', 'value'),
-    )
-    def show_hide_element(toggle):
-        if toggle:
-            return {'display': 'block', 'font-size': '100%'}
-        else:
-            return {'display': 'none'}
-
-    ##---------INTEREST EQUITY RATIO CALCULATION CALLBACK----------
-    @dash_app.callback([Output('er_outputA', 'children'), Output('equity_ratio_store_group', 'data')],
-                       Input(component_id='inputE', component_property='value'),
-                       Input(component_id='inputF', component_property='value'),
-                       Input(component_id='eq_toggle_switch', component_property='value'),
-                       Input(component_id='debt_assoc_enterprise', component_property='value')
-                       )
-    def get_equity_ratio(inputE, inputF, toggle, debt):
-        if toggle:
-            if inputE is not None and inputF is not None and debt is not None:
-                A_calc_percent = round((float(inputE) - float(debt)) / float(inputF), 5) * 100
-                group = A_calc_percent / 100
-                data = [{'group': group}]
-                return ["{:.2f}%".format(A_calc_percent), data]
-            else:
-                data = [{'group': "Not calculated yet - Please enter details"}]
-                return ["Not calculated yet - Please enter details", data]
-        if not toggle:
-            if inputE is not None and inputF is not None:
-                A_calc_percent = round((float(inputE)) / float(inputF), 5) * 100
-                group = A_calc_percent / 100
-                data = [{'group': group}]
-                return ["{:.2f}%".format(A_calc_percent), data]
-            else:
-                data = [{'group': "Not calculated yet - Please enter details"}]
-                return ["Not calculated yet - Please enter details", data]
-
-
-    ##---------INTEREST EQUITY RATIO WORKINGS CALLBACK----------
-    # workings
-    @dash_app.callback(Output('er_workingsA', 'children'),
-                       Input(component_id='inputE', component_property='value'),
-                       Input(component_id='inputF', component_property='value'),
-                       Input(component_id='eq_toggle_switch', component_property='value'),
-                       Input(component_id='debt_assoc_enterprise', component_property='value')
-                       )
-    def get_equity_ratio(inputE, inputF, toggle, debt):
-        if toggle == True:
-            if inputE is not None and inputF is not None and debt is not None:
-                A_calc = (float(inputE) - float(debt)) / float(inputF)
-                A_calc_percent = round(A_calc, 5) * 100
-
-                workings = html.Div([
-                    dbc.Row([
-
-                        dbc.Col([
-                            html.Div('As Single Company Worldwide Group', style={'font-size': '80%'}),
-                            html.Div('Interest Group Equity: ', style={'font-size': '80%'}),
-                            html.Div('LESS Debt from Associated Enterprises: ', style={'font-size': '80%'}),
-                            html.Div('DIVIDED BY Interest Group Total Assets: ', style={'font-size': '80%'}),
-                            html.Div('=', style={'font-size': '80%'}),
-                            html.Div('%', style={'font-size': '80%'}),
-                        ], width=7),
-
-                        dbc.Col([
-                            html.Br(),
-                            html.Div('{:,.2f} '.format(float(inputE)),
-                                     style={'text-align': 'right', 'font-size': '80%'}),
-                            html.Div('{:,.2f} '.format(float(debt)), style={'text-align': 'right', 'font-size': '80%'}),
-                            html.Div(html.U('{:,.2f}'.format(inputF)),
-                                     style={'text-align': 'right', 'font-size': '80%'}),
-                            html.Div(html.B('{:,.2f} '.format(A_calc)),
-                                     style={'text-align': 'right', 'font-size': '80%'}),
-                            html.Div(html.B('{:,.2f}% '.format(A_calc_percent)),
-                                     style={'text-align': 'right', 'font-size': '80%'}),
-                        ], width=3),
-
-                    ])
-
-                ])
-
-                return workings
-
-        if not toggle:
-            if inputE is not None and inputF is not None:
-                A_calc = float(inputE) / float(inputF)
-                A_calc_percent = round((A_calc), 5) * 100
-
-                workings = html.Div([
-                    dbc.Row([
-                        dbc.Col([
-                            html.Div('As not Single Company Worldwide Group', style={'font-size': '80%'}),
-                            html.Div('Interest Group Equity: ', style={'font-size': '80%'}),
-                            html.Div('DIVIDED BY Interest Group Total Assets: ', style={'font-size': '80%'}),
-                            html.Div('=', style={'font-size': '80%'}),
-                            html.Div('%', style={'font-size': '80%'}),
-                        ], width=7),
-
-                        dbc.Col([
-                            html.Br(),
-                            html.Div('{:,.2f} '.format(float(inputE)),
-                                     style={'text-align': 'right', 'font-size': '80%'}),
-                            html.Div(html.U('{:,.2f}'.format(inputF)),
-                                     style={'text-align': 'right', 'font-size': '80%'}),
-                            html.Div(html.B('{:,.2f} '.format(A_calc)),
-                                     style={'text-align': 'right', 'font-size': '80%'}),
-                            html.Div(html.B('{:,.2f}% '.format(A_calc_percent)),
-                                     style={'text-align': 'right', 'font-size': '80%'}),
-                        ], width=3),
-
-                    ])
-
-                ])
-                return workings
-
-    ##---------WORLDWIDE EQUITY RATIO CALCULATION CALLBACK----------
-    @dash_app.callback([Output('er_outputB', 'children'), Output('equity_ratio_store_worldwide', 'data')],
-                       Input(component_id='inputC', component_property='value'),
-                       Input(component_id='inputD', component_property='value'))
-    def get_equity_ratio(inputC, inputD):
-        if inputC is not None and inputD is not None:
-            B_calc_percent = round((float(inputC)) / float(inputD), 5) * 100
-            worldwide = B_calc_percent / 100
-            data = [{'worldwide': worldwide}]
-            return ["{:.2f}%".format(B_calc_percent), data]
-        else:
-            data = [{'worldwide': "Not calculated yet - Please enter details"}]
+            data = [{'group': "Not calculated yet - Please enter details"}]
             return ["Not calculated yet - Please enter details", data]
 
-    ##---------WORLDWIDE EQUITY RATIO WORKINGS CALLBACK----------
-    # workings
-    @dash_app.callback(Output('er_workingsB', 'children'),
-                       Input(component_id='inputC', component_property='value'),
-                       Input(component_id='inputD', component_property='value'),
-                       )
-    def get_equity_ratio(inputC, inputD):
-        if inputC is not None and inputD is not None:
-            B_calc = (float(inputC)) / float(inputD)
-            B_calc_percent = round(B_calc, 5) * 100
+##---------INTEREST EQUITY RATIO WORKINGS CALLBACK----------
+# workings
+@dash_app.callback(Output('er_workingsA', 'children'),
+                   Input(component_id='inputE', component_property='value'),
+                   Input(component_id='inputF', component_property='value'),
+                   Input(component_id='eq_toggle_switch', component_property='value'),
+                   Input(component_id='debt_assoc_enterprise', component_property='value')
+                   )
+def get_equity_ratio(inputE, inputF, toggle, debt):
+    if toggle == True:
+        if inputE is not None and inputF is not None and debt is not None:
+            A_calc = (float(inputE) - float(debt)) / float(inputF)
+            A_calc_percent = round(A_calc, 5) * 100
 
             workings = html.Div([
                 dbc.Row([
 
                     dbc.Col([
-                        html.Div('Worldwide Group Equity: ', style={'font-size': '80%'}),
-                        html.Div('DIVIDED BY Worldwide Group Total Assets: ', style={'font-size': '80%'}),
+                        html.Div('As Single Company Worldwide Group', style={'font-size': '80%'}),
+                        html.Div('Interest Group Equity: ', style={'font-size': '80%'}),
+                        html.Div('LESS Debt from Associated Enterprises: ', style={'font-size': '80%'}),
+                        html.Div('DIVIDED BY Interest Group Total Assets: ', style={'font-size': '80%'}),
                         html.Div('=', style={'font-size': '80%'}),
                         html.Div('%', style={'font-size': '80%'}),
                     ], width=7),
 
                     dbc.Col([
-                        html.Div('{:,.2f} '.format(float(inputC)), style={'text-align': 'right', 'font-size': '80%'}),
-                        html.Div(html.U('{:,.2f}'.format(inputD)), style={'text-align': 'right', 'font-size': '80%'}),
-                        html.Div(html.B('{:,.2f} '.format(B_calc)), style={'text-align': 'right', 'font-size': '80%'}),
-                        html.Div(html.B('{:,.2f}% '.format(B_calc_percent)),
+                        html.Br(),
+                        html.Div('{:,.2f} '.format(float(inputE)),
+                                 style={'text-align': 'right', 'font-size': '80%'}),
+                        html.Div('{:,.2f} '.format(float(debt)), style={'text-align': 'right', 'font-size': '80%'}),
+                        html.Div(html.U('{:,.2f}'.format(inputF)),
+                                 style={'text-align': 'right', 'font-size': '80%'}),
+                        html.Div(html.B('{:,.2f} '.format(A_calc)),
+                                 style={'text-align': 'right', 'font-size': '80%'}),
+                        html.Div(html.B('{:,.2f}% '.format(A_calc_percent)),
                                  style={'text-align': 'right', 'font-size': '80%'}),
                     ], width=3),
 
@@ -3502,957 +3457,1088 @@ def ebitda_calc(inputted_data, results_columns, ebc_dict, debt_dict):
 
             return workings
 
+    if not toggle:
+        if inputE is not None and inputF is not None:
+            A_calc = float(inputE) / float(inputF)
+            A_calc_percent = round((A_calc), 5) * 100
+
+            workings = html.Div([
+                dbc.Row([
+                    dbc.Col([
+                        html.Div('As not Single Company Worldwide Group', style={'font-size': '80%'}),
+                        html.Div('Interest Group Equity: ', style={'font-size': '80%'}),
+                        html.Div('DIVIDED BY Interest Group Total Assets: ', style={'font-size': '80%'}),
+                        html.Div('=', style={'font-size': '80%'}),
+                        html.Div('%', style={'font-size': '80%'}),
+                    ], width=7),
+
+                    dbc.Col([
+                        html.Br(),
+                        html.Div('{:,.2f} '.format(float(inputE)),
+                                 style={'text-align': 'right', 'font-size': '80%'}),
+                        html.Div(html.U('{:,.2f}'.format(inputF)),
+                                 style={'text-align': 'right', 'font-size': '80%'}),
+                        html.Div(html.B('{:,.2f} '.format(A_calc)),
+                                 style={'text-align': 'right', 'font-size': '80%'}),
+                        html.Div(html.B('{:,.2f}% '.format(A_calc_percent)),
+                                 style={'text-align': 'right', 'font-size': '80%'}),
+                    ], width=3),
+
+                ])
+
+            ])
+            return workings
+
+##---------WORLDWIDE EQUITY RATIO CALCULATION CALLBACK----------
+@dash_app.callback([Output('er_outputB', 'children'), Output('equity_ratio_store_worldwide', 'data')],
+                   Input(component_id='inputC', component_property='value'),
+                   Input(component_id='inputD', component_property='value'))
+def get_equity_ratio(inputC, inputD):
+    if inputC is not None and inputD is not None:
+        B_calc_percent = round((float(inputC)) / float(inputD), 5) * 100
+        worldwide = B_calc_percent / 100
+        data = [{'worldwide': worldwide}]
+        return ["{:.2f}%".format(B_calc_percent), data]
+    else:
+        data = [{'worldwide': "Not calculated yet - Please enter details"}]
+        return ["Not calculated yet - Please enter details", data]
+
+##---------WORLDWIDE EQUITY RATIO WORKINGS CALLBACK----------
+# workings
+@dash_app.callback(Output('er_workingsB', 'children'),
+                   Input(component_id='inputC', component_property='value'),
+                   Input(component_id='inputD', component_property='value'),
+                   )
+def get_equity_ratio(inputC, inputD):
+    if inputC is not None and inputD is not None:
+        B_calc = (float(inputC)) / float(inputD)
+        B_calc_percent = round(B_calc, 5) * 100
+
+        workings = html.Div([
+            dbc.Row([
+
+                dbc.Col([
+                    html.Div('Worldwide Group Equity: ', style={'font-size': '80%'}),
+                    html.Div('DIVIDED BY Worldwide Group Total Assets: ', style={'font-size': '80%'}),
+                    html.Div('=', style={'font-size': '80%'}),
+                    html.Div('%', style={'font-size': '80%'}),
+                ], width=7),
+
+                dbc.Col([
+                    html.Div('{:,.2f} '.format(float(inputC)), style={'text-align': 'right', 'font-size': '80%'}),
+                    html.Div(html.U('{:,.2f}'.format(inputD)), style={'text-align': 'right', 'font-size': '80%'}),
+                    html.Div(html.B('{:,.2f} '.format(B_calc)), style={'text-align': 'right', 'font-size': '80%'}),
+                    html.Div(html.B('{:,.2f}% '.format(B_calc_percent)),
+                             style={'text-align': 'right', 'font-size': '80%'}),
+                ], width=3),
+
+            ])
+
+        ])
+
+        return workings
+
     ##-------------------------------DISALLOWANCE CALLBACKS--------------------------
 
     ##-------EQUITY RATIO TEST CALLBACK-------------------
-    @dash_app.callback(
-        Output('within-output', 'children'),
-        Input('equity_ratio_store_group', 'data'),
-        Input('equity_ratio_store_worldwide', 'data')
-    )
-    def decisionmessage(ersg, ersw):
-        if ersg == [{}] or ersw == [{}]:
-            return html.H6("")
-        # formatting
-        else:
-            groupvalDict = ersg[0]
-            groupval = groupvalDict["group"]
-            worldwidevalDict = ersw[0]
-            worldwideval = worldwidevalDict["worldwide"]
+@dash_app.callback(
+    Output('within-output', 'children'),
+    Input('equity_ratio_store_group', 'data'),
+    Input('equity_ratio_store_worldwide', 'data')
+)
+def decisionmessage(ersg, ersw):
+    if ersg == [{}] or ersw == [{}]:
+        return html.H6("")
+    # formatting
+    else:
+        groupvalDict = ersg[0]
+        groupval = groupvalDict["group"]
+        worldwidevalDict = ersw[0]
+        worldwideval = worldwidevalDict["worldwide"]
 
-            # logic test
-            try:
-                float(groupval) and float(worldwideval)
-                value = round(worldwideval - groupval, 10)
-                if value <= 0.02:
-                    return html.H6(html.B("Passes Equity Ratio: No disallowance applied"),
-                                   style={'color': kpmgBlue_hash})
-                elif value > 0.02:
-                    return html.H6(html.B("Fails Equity Ratio: Disallowance applied"), style={'color': kpmgBlue_hash})
-                else:
-                    return html.H6("")
-
-            except ValueError:
+        # logic test
+        try:
+            float(groupval) and float(worldwideval)
+            value = round(worldwideval - groupval, 10)
+            if value <= 0.02:
+                return html.H6(html.B("Passes Equity Ratio: No disallowance applied"),
+                               style={'color': kpmgBlue_hash})
+            elif value > 0.02:
+                return html.H6(html.B("Fails Equity Ratio: Disallowance applied"), style={'color': kpmgBlue_hash})
+            else:
                 return html.H6("")
 
-    ##------WITHIN SCOPE CALLBACK-------------------------
-    @dash_app.callback(
-        Output('scope-output', 'children'),
-        Input('ebc_store_dm', 'data')
-    )
-    def decisionmessage(data):
-        if data == [{}]:
+        except ValueError:
             return html.H6("")
-        else:
-            ebc_dm = data[0]
-            ebc_dm1 = ebc_dm["ebc_dm"][1:]
-            ebc_dm2 = ebc_dm1.replace(',', '')
-            try:
-                float(ebc_dm2)
-                value = float(ebc_dm2)
-                if value > 3000000:
-                    return html.H6(html.B("Exceeds the De Minimis amount (€3m): Disallowance applied"),
-                                   style={'color': kpmgBlue_hash})
-                elif value <= 3000000:
-                    return html.H6(html.B("Within the De Minimis amount (€3m): No disallowance applied"),
-                                   style={'color': kpmgBlue_hash})
-                else:
-                    return html.H6("")
-            except ValueError:
+
+##------WITHIN SCOPE CALLBACK-------------------------
+@dash_app.callback(
+    Output('scope-output', 'children'),
+    Input('ebc_store_dm', 'data')
+)
+def decisionmessage(data):
+    if data == [{}]:
+        return html.H6("")
+    else:
+        ebc_dm = data[0]
+        ebc_dm1 = ebc_dm["ebc_dm"][1:]
+        ebc_dm2 = ebc_dm1.replace(',', '')
+        try:
+            float(ebc_dm2)
+            value = float(ebc_dm2)
+            if value > 3000000:
+                return html.H6(html.B("Exceeds the De Minimis amount (€3m): Disallowance applied"),
+                               style={'color': kpmgBlue_hash})
+            elif value <= 3000000:
+                return html.H6(html.B("Within the De Minimis amount (€3m): No disallowance applied"),
+                               style={'color': kpmgBlue_hash})
+            else:
                 return html.H6("")
+        except ValueError:
+            return html.H6("")
 
     ##-----EBC SIGN CALLBACK-------------------------------
 
-    @dash_app.callback(
-        Output('sign-output', 'children'),
-        Input('ebc_store', 'data')
-    )
-    def decisionmessage(data):
-        if data == [{}]:
-            return html.H6("")
-        else:
-            ebc = data[0]
-            ebc1 = ebc["ebc"][1:]
-            ebc2 = ebc1.replace(',', '')
-            try:
-                float(ebc2)
-                value = float(ebc2)
-                if value > 0:
-                    return html.H6(html.B("Exceeding Borrowing Costs is positive"), style={'color': kpmgBlue_hash})
-                elif value < 0:
-                    return html.H6(html.B("Exceeding Borrowing Costs is negative"), style={'color': kpmgBlue_hash})
-                elif value == 0:
-                    return html.H6(html.B("Error: Exceeding Borrowing Costs is 0"), style={'color': kpmgBlue_hash})
-                else:
-                    return html.H6("")
-            except ValueError:
+@dash_app.callback(
+    Output('sign-output', 'children'),
+    Input('ebc_store', 'data')
+)
+def decisionmessage(data):
+    if data == [{}]:
+        return html.H6("")
+    else:
+        ebc = data[0]
+        ebc1 = ebc["ebc"][1:]
+        ebc2 = ebc1.replace(',', '')
+        try:
+            float(ebc2)
+            value = float(ebc2)
+            if value > 0:
+                return html.H6(html.B("Exceeding Borrowing Costs is positive"), style={'color': kpmgBlue_hash})
+            elif value < 0:
+                return html.H6(html.B("Exceeding Borrowing Costs is negative"), style={'color': kpmgBlue_hash})
+            elif value == 0:
+                return html.H6(html.B("Error: Exceeding Borrowing Costs is 0"), style={'color': kpmgBlue_hash})
+            else:
                 return html.H6("")
-
-    # function to account for store formatting
-    def euroformatting(xUnformated, xKey, fail):
-        ### Format EBC, strip € and commas from store
-        xUnformated1 = xUnformated[0]
-        xUnformated2 = xUnformated1[xKey][1:]
-        xFormated = xUnformated2.replace(',', '')
-        try:
-            float(xFormated)
-            x = float(xFormated)
         except ValueError:
-            x = fail
-        return x
+            return html.H6("")
 
-    def formatting(xDict, xKey, fail):
-        xDictInd = xDict[0]
-        xInd = xDictInd[xKey]
-        try:
-            float(xInd)
-            x = float(xInd)
-        except ValueError:
-            x = fail
-        return x
+# function to account for store formatting
+def euroformatting(xUnformated, xKey, fail):
+    ### Format EBC, strip € and commas from store
+    xUnformated1 = xUnformated[0]
+    xUnformated2 = xUnformated1[xKey][1:]
+    xFormated = xUnformated2.replace(',', '')
+    try:
+        float(xFormated)
+        x = float(xFormated)
+    except ValueError:
+        x = fail
+    return x
 
-    ###---Disallowance Formula Calculation----
+def formatting(xDict, xKey, fail):
+    xDictInd = xDict[0]
+    xInd = xDictInd[xKey]
+    try:
+        float(xInd)
+        x = float(xInd)
+    except ValueError:
+        x = fail
+    return x
 
-    ##-------DISALLOWANCE CALCULATION CALLBACK------------------
-    # ----------RESULTS IN TABLE---------------------------------
-    @dash_app.callback(
-        Output('dis-output', 'children'),
-        # Input('dis-calculate', 'n_clicks'),
-        # Input('within-output', 'children'),
-        # Input('sign-output', 'children'),
-        Input('ebc_store', 'data'),
-        Input('group_ratio_store', 'data'),
-        Input('tax_ebitda_store', 'data'),
-        Input('ebc_store_spareCap', 'data'),
-        Input('ebc_store_intcalc', 'data'),
-        Input('equity_ratio_store_group', 'data'),
-        Input('equity_ratio_store_worldwide', 'data'),
-        Input('tax_ebitda_store_lim_spare_cap', 'data')
-    )
-    ### Limited Spare Capacity needed
-    def disallowanceformula(ebcPre, groupRatPre, ebitdaPre, iscPre, intcalcPre, erGroupPre, erWrldPre, lscPre):
-        # if n_clicks > 0:
-        # Call our formatting functions
-        ebc = euroformatting(ebcPre, "ebc", 0)
-        groupRat = formatting(groupRatPre, "group_ratio", 0)
-        ebitda = euroformatting(ebitdaPre, "tax_ebitda", 0)
-        isc = formatting(iscPre, "spare_capacity", 0)
-        intcalc = formatting(intcalcPre, "intcalc", 0)
+###---Disallowance Formula Calculation----
 
-        erGroup = formatting(erGroupPre, "group", 0)
-        erWrld = formatting(erWrldPre, "worldwide", 0)
-        lsc = formatting(lscPre, "limit_spare_capacity", 0)
+##-------DISALLOWANCE CALCULATION CALLBACK------------------
+# ----------RESULTS IN TABLE---------------------------------
+@dash_app.callback(
+    Output('dis-output', 'children'),
+    # Input('dis-calculate', 'n_clicks'),
+    # Input('within-output', 'children'),
+    # Input('sign-output', 'children'),
+    Input('ebc_store', 'data'),
+    Input('group_ratio_store', 'data'),
+    Input('tax_ebitda_store', 'data'),
+    Input('ebc_store_spareCap', 'data'),
+    Input('ebc_store_intcalc', 'data'),
+    Input('equity_ratio_store_group', 'data'),
+    Input('equity_ratio_store_worldwide', 'data'),
+    Input('tax_ebitda_store_lim_spare_cap', 'data')
+)
+### Limited Spare Capacity needed
+def disallowanceformula(ebcPre, groupRatPre, ebitdaPre, iscPre, intcalcPre, erGroupPre, erWrldPre, lscPre):
+    # if n_clicks > 0:
+    # Call our formatting functions
+    ebc1 = euroformatting(ebcPre, "ebc", 0)
+    groupRat = formatting(groupRatPre, "group_ratio", 0)
+    ebitda = euroformatting(ebitdaPre, "tax_ebitda", 0)
+    isc = formatting(iscPre, "spare_capacity", 0)
+    intcalc = formatting(intcalcPre, "intcalc", 0)
 
-        # "Fails interest restrictions. Disallowance applied."
-        if erGroup == 0 and erWrld == 0:
-            workings = "Equity Ratio Test not completed yet"
+    erGroup = formatting(erGroupPre, "group", 0)
+    erWrld = formatting(erWrldPre, "worldwide", 0)
+    lsc = formatting(lscPre, "limit_spare_capacity", 0)
 
+    # "Fails interest restrictions. Disallowance applied."
+    if erGroup == 0 and erWrld == 0:
+        workings = "Equity Ratio Test not completed yet"
+
+    else:
+        value = round(float(erWrld) - float(erGroup), 10)
+        if value <= .02:
+            workings = "Passes Interest restrictions: No disallowance applied"
         else:
-            value = round(float(erWrld) - float(erGroup), 10)
-            if value <= .02:
-                workings = "Passes Interest restrictions: No disallowance applied"
-            else:
-                ### If EBC Positive, apply disallowance formula
-                #### Disallowance and TotSpareCap returned (along with respective tax values)
-                if ebc > 0:
-                    # Check if group ratio or 30% is greater
-                    if groupRat > 0.3:
-                        disFormula = (groupRat * ebitda) + lsc + isc
-                    else:
-                        disFormula = (0.3 * ebitda) + lsc + isc
-
-                    # Compare disallowance formula to EBC
-                    # Total Spare Capacity calculated here
-                    if disFormula < ebc:
-                        disAmount = ebc - disFormula
-                        totSpareCap = 0
-
-                    else:
-                        disAmount = 0
-                        totSpareCap = ebc - disFormula
-
-                    disAmountTax = disAmount * (corporate_tax / 100)
-                    totSpareCapTax = totSpareCap * (corporate_tax / 100)
-                    intSpareCap = 0
-                    intSpareCapTax = intSpareCap * (corporate_tax / 100)
-
-                    # Construct Table
-                    workings = html.Div([
-                        dbc.Row([
-                            dbc.Col([html.Div('')], width=5),
-                            dbc.Col([html.Div(html.B('Amount')), ], width=3),
-                            dbc.Col([html.Div(html.B('Tax Value'))], width=3)
-                        ]),
-                        dbc.Row([
-                            dbc.Col([
-                                html.Div('Disallowed Amount: '),
-                                html.Div('Total Spare Capacity: '),
-                            ], width=5),
-                            dbc.Col([
-                                html.Div('€{:,.2f}'.format(disAmount)),
-                                html.Div('€{:,.2f}'.format(totSpareCap)),
-                            ], width=3),
-                            dbc.Col([
-                                html.Div('€{:,.2f}'.format(disAmountTax)),
-                                html.Div('€{:,.2f}'.format(totSpareCapTax)),
-                            ], width=3)
-                        ])
-
-                    ])
-
-                    ### Disallowance Formula not applied
-                #### Interest Spare Capacity calculated here
+            ### If EBC Positive, apply disallowance formula
+            #### Disallowance and TotSpareCap returned (along with respective tax values)
+            if ebc1 > 0:
+                # Check if group ratio or 30% is greater
+                if groupRat > 0.3:
+                    disFormula = (groupRat * ebitda) + lsc + isc
                 else:
-                    intSpareCap = -ebc + intcalc
-                    intSpareCapTax = intSpareCap * (corporate_tax / 100)
+                    disFormula = (0.3 * ebitda) + lsc + isc
 
-                    # retune other calculations
-                    disFormula = "Not Assigned"
-                    disAmount = 0
+                # Compare disallowance formula to EBC
+                # Total Spare Capacity calculated here
+                if disFormula < ebc1:
+                    disAmount = ebc1 - disFormula
                     totSpareCap = 0
-                    disAmountTax = disAmount * (corporate_tax / 100)
-                    totSpareCapTax = totSpareCap * (corporate_tax / 100)
 
-                    workings = html.Div([
-                        dbc.Row([
-                            dbc.Col([html.Div('')], width=5),
-                            dbc.Col([html.Div('Amount')], width=3),
-                            dbc.Col([html.Div('Tax Value')], width=3)
-                        ]),
-                        dbc.Row([
-                            dbc.Col([
-                                html.Div('Interest Spare Capacity: '),
-                            ], width=5),
-                            dbc.Col([
-                                html.Div('€{:,.2f}'.format(intSpareCap)),
-                            ], width=3),
-                            dbc.Col([
-                                html.Div('€{:,.2f}'.format(intSpareCapTax)),
+                else:
+                    disAmount = 0
+                    totSpareCap = ebc1 - disFormula
 
-                            ], width=3)
-                        ])
+                disAmountTax = disAmount * (corporate_tax / 100)
+                totSpareCapTax = totSpareCap * (corporate_tax / 100)
+                intSpareCap = 0
+                intSpareCapTax = intSpareCap * (corporate_tax / 100)
 
-                    ])
-        return workings
-
-    ##-------DISALLOWANCE WORKING CALLBACK----------------------
-    @dash_app.callback(
-        Output('dis-workings-output', 'children'),
-        Input('ebc_store', 'data'),
-        Input('group_ratio_store', 'data'),
-        Input('tax_ebitda_store', 'data'),
-        Input('ebc_store_spareCap', 'data'),
-        Input('ebc_store_intcalc', 'data'),
-        Input('equity_ratio_store_group', 'data'),
-        Input('equity_ratio_store_worldwide', 'data'),
-        Input('tax_ebitda_store_lim_spare_cap', 'data')
-    )
-    def disallowance_workings(ebcPre, groupRatPre, ebitdaPre, iscPre, intcalcPre, erGroupPre, erWrldPre, lscPre):
-        # if n_clicks > 0:
-        # Call our formatting functions
-        ebc = euroformatting(ebcPre, "ebc", 0)
-        groupRat = formatting(groupRatPre, "group_ratio", 0)
-        ebitda = euroformatting(ebitdaPre, "tax_ebitda", 0)
-        isc = formatting(iscPre, "spare_capacity", 0)
-        intcalc = formatting(intcalcPre, "intcalc", 0)
-
-        erGroup = formatting(erGroupPre, "group", 0)
-        erWrld = formatting(erWrldPre, "worldwide", 0)
-        lsc = formatting(lscPre, "limit_spare_capacity", 0)
-        # "Fails interest restrictions. Disallowance applied."
-        if erGroup == 0 and erWrld == 0:
-
-            # getting errors with this
-            equityRatioResponse = "No workings to show - Equity Ratio Test not completed yet"
-
-            workings = html.Div(
-                [html.Div(html.B("Step 1: Equity Ratio Test")),
-                 equityRatioResponse,
-
-                 ])
-
-
-        else:
-            value = round(float(erWrld) - float(erGroup), 10)
-            if value <= .02:
-                equityRatioResponse = html.Div(
-                    [
-                        dbc.Row([
-                            dbc.Col([
-                                html.Div('Equity Ratio Worldwide:', style={'font-size': '80%'}),
-                                html.Div('LESS Equity Ratio Group:', style={'font-size': '80%'}),
-                                html.Div('=', style={'font-size': '80%'}),
-                                html.Div('%', style={'font-size': '80%'})
-                            ], width=6),
-
-                            dbc.Col([
-                                html.Div('{:.2f}%'.format(100 * erWrld),
-                                         style={'text-align': 'right', 'font-size': '80%'}),
-                                html.Div(html.U('{:.2f}%'.format(100 * erGroup)),
-                                         style={'text-align': 'right', 'font-size': '80%'}),
-                                html.Div(html.B('{:,.2f}'.format(value)),
-                                         style={'text-align': 'right', 'font-size': '80%'}),
-                                html.Div(html.B('{:,.2f}%'.format(100 * value)),
-                                         style={'text-align': 'right', 'font-size': '80%'})
-                            ], width=2)
-                        ]),
-                        html.Div("As {:,.2f}% ≤ 2%: No disallowance applied".format(100 * value),
-                                 style={'font-size': '80%'})
-                    ])
-                workings = html.Div(
-                    [html.Div(html.B("Step 1: Equity Ratio Test", style={'font-size': '80%'})),
-                     equityRatioResponse,
-                     ])
-            else:
-                equityRatioResponse = html.Div(
-                    [
-                        dbc.Row([
-                            dbc.Col([
-                                html.Div('Equity Ratio Worldwide', style={'font-size': '80%'}),
-                                html.Div('LESS Equity Ratio Group:', style={'font-size': '80%'}),
-                                html.Div('=', style={'font-size': '80%'}),
-                                html.Div('%', style={'font-size': '80%'})
-                            ], width=6),
-
-                            dbc.Col([
-                                html.Div('{:.2f}%'.format(100 * erWrld),
-                                         style={'text-align': 'right', 'font-size': '80%'}),
-                                html.Div(html.U('{:.2f}%'.format(100 * erGroup)),
-                                         style={'text-align': 'right', 'font-size': '80%'}),
-                                html.Div(html.B('{:.2f}'.format(value)),
-                                         style={'text-align': 'right', 'font-size': '80%'}),
-                                html.Div(html.B('{:.2f}%'.format(100 * value)),
-                                         style={'text-align': 'right', 'font-size': '80%'})
-                            ], width=2)
-                        ]),
-                        html.Div("As {:.2f}% > 2%: Disallowance applied".format(100 * value),
-                                 style={'font-size': '80%'})
+                # Construct Table
+                workings = html.Div([
+                    dbc.Row([
+                        dbc.Col([html.Div('')], width=5),
+                        dbc.Col([html.Div(html.B('Amount')), ], width=3),
+                        dbc.Col([html.Div(html.B('Tax Value'))], width=3)
+                    ]),
+                    dbc.Row([
+                        dbc.Col([
+                            html.Div('Disallowed Amount: '),
+                            html.Div('Total Spare Capacity: '),
+                        ], width=5),
+                        dbc.Col([
+                            html.Div('€{:,.2f}'.format(disAmount)),
+                            html.Div('€{:,.2f}'.format(totSpareCap)),
+                        ], width=3),
+                        dbc.Col([
+                            html.Div('€{:,.2f}'.format(disAmountTax)),
+                            html.Div('€{:,.2f}'.format(totSpareCapTax)),
+                        ], width=3)
                     ])
 
-                ### If EBC Positive, apply disallowance formula
-                #### Disallowance and TotSpareCap returned (along with respective tax values)
-                if ebc > 0:
-
-                    ebcResponse = html.Div(
-                        [
-                            dbc.Row([
-                                dbc.Col([
-                                    html.Div('Exceeding Borrowing Costs:', style={'font-size': '80%'})
-                                ], width=6),
-
-                                dbc.Col([
-                                    html.Div('€{:,.2f}'.format(ebc), style={'text-align': 'right', 'font-size': '80%'})
-                                ], width=2)
-                            ]),
-                            html.Div("As €{:,.2f} > 0: Disallowance applied".format(ebc), style={'font-size': '80%'})
-                        ])
-                    # Check if group ratio or 30% is greater
-                    if groupRat > 0.3:
-                        disFormula = (groupRat * ebitda) + lsc + isc
-                        groupRatFormula = html.Div(
-                            [
-                                dbc.Row([
-                                    dbc.Col([
-                                        html.Div('As Group Ratio ({}%) > 30%:'.format(100 * groupRat),
-                                                 style={'font-size': '80%'}),
-                                        html.Div('Group Ratio:', style={'font-size': '80%'}),
-                                        html.Div('MULTIPLY BY Tax EBITDA:', style={'font-size': '80%'}),
-                                        html.Div('ADD Limited Spare Capacity:', style={'font-size': '80%'}),
-                                        html.Div('ADD Interest Spare Capacity:', style={'font-size': '80%'}),
-                                        html.Div('Total:', style={'font-size': '80%'}),
-                                    ], width=6),
-
-                                    dbc.Col([
-                                        html.P(""),
-                                        html.Div('{:.2f}%'.format(100 * groupRat),
-                                                 style={'text-align': 'right', 'font-size': '80%'}),
-                                        html.Div('€{:,.2f}'.format(ebitda),
-                                                 style={'text-align': 'right', 'font-size': '80%'}),
-                                        html.Div('€{:,.2f}'.format(lsc),
-                                                 style={'text-align': 'right', 'font-size': '80%'}),
-                                        html.Div(html.U('€{:,.2f}'.format(isc)),
-                                                 style={'text-align': 'right', 'font-size': '80%'}),
-                                        html.Div('€{:,.2f}'.format(disFormula),
-                                                 style={'text-align': 'right', 'font-size': '80%'})
-                                    ], width=2)
-                                ]),
-                            ])
-                    else:
-                        disFormula = (0.3 * ebitda) + lsc + isc
-                        groupRatFormula = html.Div(
-                            [
-                                dbc.Row([
-                                    dbc.Col([
-                                        html.Div('As 30% > Group Ratio ({}%):'.format(100 * groupRat),
-                                                 style={'font-size': '80%'}),
-                                        html.Div(""),
-                                        html.Div('MULTIPLY BY Tax EBITDA:', style={'font-size': '80%'}),
-                                        html.Div('ADD Limited Spare Capacity:', style={'font-size': '80%'}),
-                                        html.Div('ADD Interest Spare Capacity:', style={'font-size': '80%'}),
-                                        html.Div('Total:'),
-                                    ], width=6),
-
-                                    dbc.Col([
-                                        html.Div(""),
-                                        html.Div('30%', style={'text-align': 'right', 'font-size': '80%'}),
-                                        html.Div('€{:,.2f}'.format(ebitda),
-                                                 style={'text-align': 'right', 'font-size': '80%'}),
-                                        html.Div('€{:,.2f}'.format(lsc),
-                                                 style={'text-align': 'right', 'font-size': '80%'}),
-                                        html.Div(html.U('€{:,.2f}'.format(isc)),
-                                                 style={'text-align': 'right', 'font-size': '80%'}),
-                                        html.Div('€{:,.2f}'.format(disFormula),
-                                                 style={'text-align': 'right', 'font-size': '80%'})
-                                    ], width=2)
-                                ]),
-                            ])
-
-                    # Compare disallowance formula to EBC
-                    # Total Spare Capacity calculated here
-                    if disFormula < ebc:
-                        disAmount = ebc - disFormula
-                        totSpareCap = 0
-                        disallowed_amount = html.Div(
-                            [
-                                dbc.Row([
-                                    dbc.Col([
-                                        html.Div(
-                                            'As Exceeding Borrowing Costs (€{:,.2f}) > €{:,.2f} :'.format(ebc,
-                                                                                                          disFormula),
-                                            style={'font-size': '80%'}),
-                                        html.Div(html.U("Disallowed Amount:"), style={'font-size': '80%'}),
-                                        html.Div('Exceeding Borrowing Costs:', style={'font-size': '80%'}),
-                                        html.Div('LESS :', style={'font-size': '80%'}),
-                                        html.Div('Total:', style={'font-size': '80%'}),
-                                        html.Div('@ 12.5%:', style={'font-size': '80%'}),
-
-                                        html.Br(),
-                                        html.Div(html.U('Total Spare Capacity:', style={'font-size': '80%'})),
-                                        html.Div('Total:', style={'font-size': '80%'}),
-                                        html.Div('@ 12.5%:', style={'font-size': '80%'}),
-
-                                    ], width=6),
-
-                                    dbc.Col([
-                                        html.Br(),
-                                        html.Br(),
-                                        html.Div('€{:,.2f}'.format(ebc),
-                                                 style={'text-align': 'right', 'font-size': '80%'}),
-                                        html.Div(html.U('€{:,.2f}'.format(disFormula)),
-                                                 style={'text-align': 'right', 'font-size': '80%'}),
-                                        html.Div(html.B('€{:,.2f}'.format(disAmount)),
-                                                 style={'text-align': 'right', 'font-size': '80%'}),
-                                        html.Div(html.B('€{:,.2f}'.format(disAmount * .125)),
-                                                 style={'text-align': 'right', 'font-size': '80%'}),
-
-                                        html.Br(),
-                                        html.Br(),
-                                        html.Div(html.B('€0.00'), style={'text-align': 'right', 'font-size': '80%'}),
-                                        html.Div(html.B('€0.00'), style={'text-align': 'right', 'font-size': '80%'})
-                                    ], width=2)
-                                ]),
-                            ])
-
-
-                    else:
-                        disAmount = 0
-                        totSpareCap = ebc - disFormula
-
-                        disallowed_amount = html.Div(
-                            [
-                                dbc.Row([
-                                    dbc.Col([
-                                        html.Div(
-                                            'As Exceeding Borrowing Costs (€{:,.2f}) <= €{:,.2f} :'.format(ebc,
-                                                                                                           disFormula),
-                                            style={'font-size': '80%'}),
-                                        html.Div(html.U("Disallowed Amount:", style={'font-size': '80%'})),
-                                        html.Div('Total:', style={'font-size': '80%'}),
-                                        html.Div('@ 12.5%: ', style={'font-size': '80%'}),
-
-                                        html.Br(),
-                                        html.Div(html.U('Total Spare Capacity:', style={'font-size': '80%'})),
-                                        html.Div('Exceeding Borrowing Costs:', style={'font-size': '80%'}),
-                                        html.Div('LESS :', style={'font-size': '80%'}),
-                                        html.Div('Total:', style={'font-size': '80%'}),
-                                        html.Div('@ 12.5%:', style={'font-size': '80%'})
-
-                                    ], width=6),
-
-                                    dbc.Col([
-                                        html.Br(),
-                                        html.Br(),
-                                        html.Div(html.B('€0.00'), style={'text-align': 'right', 'font-size': '80%'}),
-                                        html.Div(html.B('€0.00'), style={'text-align': 'right', 'font-size': '80%'}),
-
-                                        html.Br(),
-                                        html.Br(),
-                                        html.Div('€{:,.2f}'.format(ebc),
-                                                 style={'text-align': 'right', 'font-size': '80%'}),
-                                        html.Div(html.U('€{:,.2f}'.format(disFormula)),
-                                                 style={'text-align': 'right', 'font-size': '80%'}),
-                                        html.Div(html.B('€{:,.2f}'.format(disAmount)),
-                                                 style={'text-align': 'right', 'font-size': '80%'}),
-                                        html.Div(html.B('€{:,.2f}'.format(disAmount * .125)),
-                                                 style={'text-align': 'right', 'font-size': '80%'})
-                                    ], width=2)
-                                ]),
-                            ])
-
-                    disAmountTax = disAmount * (corporate_tax / 100)
-                    totSpareCapTax = totSpareCap * (corporate_tax / 100)
-                    intSpareCap = 0
-                    intSpareCapTax = intSpareCap * (corporate_tax / 100)
-
-                    workings = html.Div(
-                        [html.Div(html.B("Step 1: Equity Ratio Test")),
-                         equityRatioResponse,
-                         html.P(""),
-                         html.Div(html.B("Step 2: Exceeding Borrowing Costs Test")),
-                         ebcResponse,
-                         html.P(""),
-                         html.Div(html.B("Step 3: Group Ratio Check")),
-                         groupRatFormula,
-                         html.P(""),
-                         html.Div(html.B("Step 4: Disallowed Amount")),
-                         disallowed_amount
-                         ])
-
+                ])
 
                 ### Disallowance Formula not applied
-                #### Interest Spare Capacity calculated here
-                else:
+            #### Interest Spare Capacity calculated here
+            else:
+                intSpareCap = -ebc1 + intcalc
+                intSpareCapTax = intSpareCap * (corporate_tax / 100)
 
-                    ebcResponse = html.Div(
+                # retune other calculations
+                disFormula = "Not Assigned"
+                disAmount = 0
+                totSpareCap = 0
+                disAmountTax = disAmount * (corporate_tax / 100)
+                totSpareCapTax = totSpareCap * (corporate_tax / 100)
+
+                workings = html.Div([
+                    dbc.Row([
+                        dbc.Col([html.Div('')], width=5),
+                        dbc.Col([html.Div('Amount')], width=3),
+                        dbc.Col([html.Div('Tax Value')], width=3)
+                    ]),
+                    dbc.Row([
+                        dbc.Col([
+                            html.Div('Interest Spare Capacity: '),
+                        ], width=5),
+                        dbc.Col([
+                            html.Div('€{:,.2f}'.format(intSpareCap)),
+                        ], width=3),
+                        dbc.Col([
+                            html.Div('€{:,.2f}'.format(intSpareCapTax)),
+
+                        ], width=3)
+                    ])
+
+                ])
+    return workings
+
+##-------DISALLOWANCE WORKING CALLBACK----------------------
+@dash_app.callback(
+    Output('dis-workings-output', 'children'),
+    Input('ebc_store', 'data'),
+    Input('group_ratio_store', 'data'),
+    Input('tax_ebitda_store', 'data'),
+    Input('ebc_store_spareCap', 'data'),
+    Input('ebc_store_intcalc', 'data'),
+    Input('equity_ratio_store_group', 'data'),
+    Input('equity_ratio_store_worldwide', 'data'),
+    Input('tax_ebitda_store_lim_spare_cap', 'data')
+)
+def disallowance_workings(ebcPre, groupRatPre, ebitdaPre, iscPre, intcalcPre, erGroupPre, erWrldPre, lscPre):
+    # if n_clicks > 0:
+    # Call our formatting functions
+    ebc1 = euroformatting(ebcPre, "ebc", 0)
+    groupRat = formatting(groupRatPre, "group_ratio", 0)
+    ebitda = euroformatting(ebitdaPre, "tax_ebitda", 0)
+    isc = formatting(iscPre, "spare_capacity", 0)
+    intcalc = formatting(intcalcPre, "intcalc", 0)
+
+    erGroup = formatting(erGroupPre, "group", 0)
+    erWrld = formatting(erWrldPre, "worldwide", 0)
+    lsc = formatting(lscPre, "limit_spare_capacity", 0)
+    # "Fails interest restrictions. Disallowance applied."
+    if erGroup == 0 and erWrld == 0:
+
+        # getting errors with this
+        equityRatioResponse = "No workings to show - Equity Ratio Test not completed yet"
+
+        workings = html.Div(
+            [html.Div(html.B("Step 1: Equity Ratio Test")),
+             equityRatioResponse,
+
+             ])
+
+
+    else:
+        value = round(float(erWrld) - float(erGroup), 10)
+        if value <= .02:
+            equityRatioResponse = html.Div(
+                [
+                    dbc.Row([
+                        dbc.Col([
+                            html.Div('Equity Ratio Worldwide:', style={'font-size': '80%'}),
+                            html.Div('LESS Equity Ratio Group:', style={'font-size': '80%'}),
+                            html.Div('=', style={'font-size': '80%'}),
+                            html.Div('%', style={'font-size': '80%'})
+                        ], width=6),
+
+                        dbc.Col([
+                            html.Div('{:.2f}%'.format(100 * erWrld),
+                                     style={'text-align': 'right', 'font-size': '80%'}),
+                            html.Div(html.U('{:.2f}%'.format(100 * erGroup)),
+                                     style={'text-align': 'right', 'font-size': '80%'}),
+                            html.Div(html.B('{:,.2f}'.format(value)),
+                                     style={'text-align': 'right', 'font-size': '80%'}),
+                            html.Div(html.B('{:,.2f}%'.format(100 * value)),
+                                     style={'text-align': 'right', 'font-size': '80%'})
+                        ], width=2)
+                    ]),
+                    html.Div("As {:,.2f}% ≤ 2%: No disallowance applied".format(100 * value),
+                             style={'font-size': '80%'})
+                ])
+            workings = html.Div(
+                [html.Div(html.B("Step 1: Equity Ratio Test", style={'font-size': '80%'})),
+                 equityRatioResponse,
+                 ])
+        else:
+            equityRatioResponse = html.Div(
+                [
+                    dbc.Row([
+                        dbc.Col([
+                            html.Div('Equity Ratio Worldwide', style={'font-size': '80%'}),
+                            html.Div('LESS Equity Ratio Group:', style={'font-size': '80%'}),
+                            html.Div('=', style={'font-size': '80%'}),
+                            html.Div('%', style={'font-size': '80%'})
+                        ], width=6),
+
+                        dbc.Col([
+                            html.Div('{:.2f}%'.format(100 * erWrld),
+                                     style={'text-align': 'right', 'font-size': '80%'}),
+                            html.Div(html.U('{:.2f}%'.format(100 * erGroup)),
+                                     style={'text-align': 'right', 'font-size': '80%'}),
+                            html.Div(html.B('{:.2f}'.format(value)),
+                                     style={'text-align': 'right', 'font-size': '80%'}),
+                            html.Div(html.B('{:.2f}%'.format(100 * value)),
+                                     style={'text-align': 'right', 'font-size': '80%'})
+                        ], width=2)
+                    ]),
+                    html.Div("As {:.2f}% > 2%: Disallowance applied".format(100 * value),
+                             style={'font-size': '80%'})
+                ])
+
+            ### If EBC Positive, apply disallowance formula
+            #### Disallowance and TotSpareCap returned (along with respective tax values)
+            if ebc1 > 0:
+
+                ebcResponse = html.Div(
+                    [
+                        dbc.Row([
+                            dbc.Col([
+                                html.Div('Exceeding Borrowing Costs:', style={'font-size': '80%'})
+                            ], width=6),
+
+                            dbc.Col([
+                                html.Div('€{:,.2f}'.format(ebc1), style={'text-align': 'right', 'font-size': '80%'})
+                            ], width=2)
+                        ]),
+                        html.Div("As €{:,.2f} > 0: Disallowance applied".format(ebc1), style={'font-size': '80%'})
+                    ])
+                # Check if group ratio or 30% is greater
+                if groupRat > 0.3:
+                    disFormula = (groupRat * ebitda) + lsc + isc
+                    groupRatFormula = html.Div(
                         [
                             dbc.Row([
                                 dbc.Col([
-                                    html.Div('Exceeding Borrowing Costs:', style={'font-size': '80%'})
+                                    html.Div('As Group Ratio ({}%) > 30%:'.format(100 * groupRat),
+                                             style={'font-size': '80%'}),
+                                    html.Div('Group Ratio:', style={'font-size': '80%'}),
+                                    html.Div('MULTIPLY BY Tax EBITDA:', style={'font-size': '80%'}),
+                                    html.Div('ADD Limited Spare Capacity:', style={'font-size': '80%'}),
+                                    html.Div('ADD Interest Spare Capacity:', style={'font-size': '80%'}),
+                                    html.Div('Total:', style={'font-size': '80%'}),
                                 ], width=6),
 
                                 dbc.Col([
-                                    html.Div('€{:,.2f}'.format(ebc), style={'text-align': 'right', 'font-size': '80%'})
+                                    html.P(""),
+                                    html.Div('{:.2f}%'.format(100 * groupRat),
+                                             style={'text-align': 'right', 'font-size': '80%'}),
+                                    html.Div('€{:,.2f}'.format(ebitda),
+                                             style={'text-align': 'right', 'font-size': '80%'}),
+                                    html.Div('€{:,.2f}'.format(lsc),
+                                             style={'text-align': 'right', 'font-size': '80%'}),
+                                    html.Div(html.U('€{:,.2f}'.format(isc)),
+                                             style={'text-align': 'right', 'font-size': '80%'}),
+                                    html.Div('€{:,.2f}'.format(disFormula),
+                                             style={'text-align': 'right', 'font-size': '80%'})
                                 ], width=2)
                             ]),
-                            html.Div("As €{:,.2f} < 0: Disallowance not applied.".format(ebc),
-                                     style={'font-size': '80%'})
+                        ])
+                else:
+                    disFormula = (0.3 * ebitda) + lsc + isc
+                    groupRatFormula = html.Div(
+                        [
+                            dbc.Row([
+                                dbc.Col([
+                                    html.Div('As 30% > Group Ratio ({}%):'.format(100 * groupRat),
+                                             style={'font-size': '80%'}),
+                                    html.Div(""),
+                                    html.Div('MULTIPLY BY Tax EBITDA:', style={'font-size': '80%'}),
+                                    html.Div('ADD Limited Spare Capacity:', style={'font-size': '80%'}),
+                                    html.Div('ADD Interest Spare Capacity:', style={'font-size': '80%'}),
+                                    html.Div('Total:'),
+                                ], width=6),
+
+                                dbc.Col([
+                                    html.Div(""),
+                                    html.Div('30%', style={'text-align': 'right', 'font-size': '80%'}),
+                                    html.Div('€{:,.2f}'.format(ebitda),
+                                             style={'text-align': 'right', 'font-size': '80%'}),
+                                    html.Div('€{:,.2f}'.format(lsc),
+                                             style={'text-align': 'right', 'font-size': '80%'}),
+                                    html.Div(html.U('€{:,.2f}'.format(isc)),
+                                             style={'text-align': 'right', 'font-size': '80%'}),
+                                    html.Div('€{:,.2f}'.format(disFormula),
+                                             style={'text-align': 'right', 'font-size': '80%'})
+                                ], width=2)
+                            ]),
                         ])
 
-                    groupRatFormula = html.Div("N/A")
-
-                    intSpareCap = -ebc + intcalc
-                    intSpareCapTax = intSpareCap * (corporate_tax / 100)
-
-                    # retune other calculations
-                    disFormula = "Not Assigned"
-                    disAmount = 0
+                # Compare disallowance formula to EBC
+                # Total Spare Capacity calculated here
+                if disFormula < ebc1:
+                    disAmount = ebc1 - disFormula
                     totSpareCap = 0
-                    disAmountTax = disAmount * (corporate_tax / 100)
-                    totSpareCapTax = totSpareCap * (corporate_tax / 100)
-
                     disallowed_amount = html.Div(
                         [
                             dbc.Row([
                                 dbc.Col([
-                                    # html.Div(html.U('Amount:')),
-                                    html.Div("Interest Spare Capacity:", style={'font-size': '80%'}),
-                                    html.Div("LESS Exceeding Borrowing Costs:", style={'font-size': '80%'}),
+                                    html.Div(
+                                        'As Exceeding Borrowing Costs (€{:,.2f}) > €{:,.2f} :'.format(ebc1,
+                                                                                                      disFormula),
+                                        style={'font-size': '80%'}),
+                                    html.Div(html.U("Disallowed Amount:"), style={'font-size': '80%'}),
+                                    html.Div('Exceeding Borrowing Costs:', style={'font-size': '80%'}),
+                                    html.Div('LESS :', style={'font-size': '80%'}),
+                                    html.Div('Total:', style={'font-size': '80%'}),
+                                    html.Div('@ 12.5%:', style={'font-size': '80%'}),
+
+                                    html.Br(),
+                                    html.Div(html.U('Total Spare Capacity:', style={'font-size': '80%'})),
                                     html.Div('Total:', style={'font-size': '80%'}),
                                     html.Div('@ 12.5%:', style={'font-size': '80%'}),
 
                                 ], width=6),
 
                                 dbc.Col([
-                                    # html.Br(),
-                                    html.Div('€{:,.2f}'.format(intcalc),
+                                    html.Br(),
+                                    html.Br(),
+                                    html.Div('€{:,.2f}'.format(ebc1),
                                              style={'text-align': 'right', 'font-size': '80%'}),
-                                    html.Div(html.U('€{:,.2f}'.format(ebc)),
+                                    html.Div(html.U('€{:,.2f}'.format(disFormula)),
                                              style={'text-align': 'right', 'font-size': '80%'}),
-                                    html.Div(html.B('€{:,.2f}'.format(intSpareCap)),
+                                    html.Div(html.B('€{:,.2f}'.format(disAmount)),
                                              style={'text-align': 'right', 'font-size': '80%'}),
-                                    html.Div(html.B('€{:,.2f}'.format(intSpareCapTax)),
+                                    html.Div(html.B('€{:,.2f}'.format(disAmount * .125)),
                                              style={'text-align': 'right', 'font-size': '80%'}),
 
+                                    html.Br(),
+                                    html.Br(),
+                                    html.Div(html.B('€0.00'), style={'text-align': 'right', 'font-size': '80%'}),
+                                    html.Div(html.B('€0.00'), style={'text-align': 'right', 'font-size': '80%'})
                                 ], width=2)
                             ]),
                         ])
 
-                    workings = html.Div(
-                        [html.Div(html.B("Step 1: Equity Ratio Test")),
-                         equityRatioResponse,
-                         html.P(""),
-                         html.Div(html.B("Step 2: Exceeding Borrowing Costs Test")),
-                         ebcResponse,
-                         html.P(""),
-                         html.Div(html.B("Step 3: Amount")),
-                         disallowed_amount
-                         ])
 
-        return workings
-
-    ##-------IMPORTING STORED VALUES CALLBACKS-------------------
-
-    @dash_app.callback(
-        Output("equityRatioGrpCalc", "children"),
-        Input("equity_ratio_store_group", "data")
-    )
-    def disallowanceImport(data):
-        if data == [{}]:
-            return "No Equity Ratio Group Calculation retrieved yet"
-        else:
-            ergc = data[0]
-            try:
-                float(ergc["group"])
-                return "Group Calculation: {:.2f}%".format(100 * float(ergc["group"]))
-            except ValueError:
-                return "No Equity Ratio Group calculation saved yet"
-
-    @dash_app.callback(
-        Output("equityRatioWrldCalc", "children"),
-        Input("equity_ratio_store_worldwide", "data")
-    )
-    def disallowanceImport(data):
-        if data == [{}]:
-            return "No Equity Ratio Worldwide calculation retrieved yet"
-        else:
-            erwc = data[0]
-            try:
-                float(erwc["worldwide"])
-                return "Worldwide Calculation: {:.2f}%".format(100 * float(erwc["worldwide"]))
-            except ValueError:
-                return "No Equity Ratio Worldwide calculation saved yet"
-
-    @dash_app.callback(
-        Output("deMinimis", "children"),
-        Input("ebc_store_dm", "data")
-    )
-    def disallowanceImport(data):
-        if data == [{}]:
-            return "No Exceeding Borrowing Costs De Minimis calculation retrieved yet"
-        else:
-            ebc_dm = data[0]
-            return "Exceeding Borrowing Costs De Minimis: {}".format(ebc_dm["ebc_dm"])
-
-    @dash_app.callback(
-        Output("ebctest", "children"),
-        Input("ebc_store", "data")
-    )
-    def disallowanceImport(data):
-        if data == [{}]:
-            return "No Exceeding Borrowing Costs calculation retrieved yet"
-        else:
-            ebc = data[0]
-            return "Exceeding Borrowing Costs: {}".format(ebc["ebc"])
-
-    ##-------DISALLOWANCE STORE CALLBACK---------------
-    @dash_app.callback(
-        Output('disallowance_store', 'data'),
-        # Input('dis-calculate', 'n_clicks'),
-        # State('within-output', 'children'),
-        # State('sign-output', 'children'),
-        Input('ebc_store', 'data'),
-        Input('group_ratio_store', 'data'),
-        Input('tax_ebitda_store', 'data'),
-        Input('ebc_store_spareCap', 'data'),
-        Input('ebc_store_intcalc', 'data'),
-        Input('equity_ratio_store_group', 'data'),
-        Input('equity_ratio_store_worldwide', 'data'),
-        Input('tax_ebitda_store_lim_spare_cap', 'data')
-    )
-    ### Limited Spare Capacity needed
-    def return_disallowance(ebcPre, groupRatPre, ebitdaPre, iscPre, intcalcPre, erGroupPre, erWrldPre, lscPre):
-        # if n_clicks > 0:
-        # Call our formatting functions
-        if ebcPre != [{}] and groupRatPre != [{}] and ebitdaPre != [{}] and iscPre != [{}] and intcalcPre != [
-            {}] and erGroupPre != [{}] and erWrldPre != [{}] and lscPre != [{}]:
-            ebc = euroformatting(ebcPre, "ebc", 0)
-            groupRat = formatting(groupRatPre, "group_ratio", 0)
-            ebitda = euroformatting(ebitdaPre, "tax_ebitda", 0)
-            isc = formatting(iscPre, "spare_capacity", 0)
-            intcalc = formatting(intcalcPre, "intcalc", 0)
-            erGroup = formatting(erGroupPre, "group", 0)
-            erWrld = formatting(erWrldPre, "worldwide", 0)
-            lsc = formatting(lscPre, "limit_spare_capacity", 0)
-
-            # "Fails interest restrictions. Disallowance applied."
-            if erGroup == 0 and erWrld == 0:
-                data = html.H6("Equity Ratio Test not completed yet")
-            elif erGroup == 0 or erWrld == 0:
-                data = html.H6("Equity Ratio Test not fully completed yet")
-            else:
-                value = round(float(erGroup) / float(erWrld), 10)
-                if value <= .02:
-                    data = "Passes Interest restrictions: No disallowance applied"
                 else:
-                    ### If EBC Positive, apply disallowance formula
-                    #### Disallowance and TotSpareCap returned (along with respective tax values)
-                    if ebc > 0:
-                        # Check if group ratio or 30% is greater
-                        if groupRat > 0.3:
-                            disFormula = (groupRat * ebitda) + lsc + isc
-                        else:
-                            disFormula = (0.3 * ebitda) + lsc + isc
+                    disAmount = 0
+                    totSpareCap = ebc1 - disFormula
 
-                        # Compare disallowance formula to EBC
-                        # Total Spare Capacity calculated here
-                        if disFormula < ebc:
-                            disAmount = ebc - disFormula
-                            totSpareCap = 0
+                    disallowed_amount = html.Div(
+                        [
+                            dbc.Row([
+                                dbc.Col([
+                                    html.Div(
+                                        'As Exceeding Borrowing Costs (€{:,.2f}) <= €{:,.2f} :'.format(ebc1,
+                                                                                                       disFormula),
+                                        style={'font-size': '80%'}),
+                                    html.Div(html.U("Disallowed Amount:", style={'font-size': '80%'})),
+                                    html.Div('Total:', style={'font-size': '80%'}),
+                                    html.Div('@ 12.5%: ', style={'font-size': '80%'}),
 
-                        else:
-                            disAmount = 0
-                            totSpareCap = ebc - disFormula
+                                    html.Br(),
+                                    html.Div(html.U('Total Spare Capacity:', style={'font-size': '80%'})),
+                                    html.Div('Exceeding Borrowing Costs:', style={'font-size': '80%'}),
+                                    html.Div('LESS :', style={'font-size': '80%'}),
+                                    html.Div('Total:', style={'font-size': '80%'}),
+                                    html.Div('@ 12.5%:', style={'font-size': '80%'})
 
-                        disAmountTax = disAmount * (corporate_tax / 100)
-                        totSpareCapTax = totSpareCap * (corporate_tax / 100)
-                        intSpareCap = 0
-                        intSpareCapTax = intSpareCap * (corporate_tax / 100)
+                                ], width=6),
 
-                        data = [{'disAmount': disAmount, 'disAmountTax': disAmountTax, 'totSpareCap': totSpareCap,
-                                 'totSpareCapTax': totSpareCapTax, 'intSpareCap': intSpareCap,
-                                 'intSpareCapTax': intSpareCapTax}]
+                                dbc.Col([
+                                    html.Br(),
+                                    html.Br(),
+                                    html.Div(html.B('€0.00'), style={'text-align': 'right', 'font-size': '80%'}),
+                                    html.Div(html.B('€0.00'), style={'text-align': 'right', 'font-size': '80%'}),
+
+                                    html.Br(),
+                                    html.Br(),
+                                    html.Div('€{:,.2f}'.format(ebc1),
+                                             style={'text-align': 'right', 'font-size': '80%'}),
+                                    html.Div(html.U('€{:,.2f}'.format(disFormula)),
+                                             style={'text-align': 'right', 'font-size': '80%'}),
+                                    html.Div(html.B('€{:,.2f}'.format(disAmount)),
+                                             style={'text-align': 'right', 'font-size': '80%'}),
+                                    html.Div(html.B('€{:,.2f}'.format(disAmount * .125)),
+                                             style={'text-align': 'right', 'font-size': '80%'})
+                                ], width=2)
+                            ]),
+                        ])
+
+                disAmountTax = disAmount * (corporate_tax / 100)
+                totSpareCapTax = totSpareCap * (corporate_tax / 100)
+                intSpareCap = 0
+                intSpareCapTax = intSpareCap * (corporate_tax / 100)
+
+                workings = html.Div(
+                    [html.Div(html.B("Step 1: Equity Ratio Test")),
+                     equityRatioResponse,
+                     html.P(""),
+                     html.Div(html.B("Step 2: Exceeding Borrowing Costs Test")),
+                     ebcResponse,
+                     html.P(""),
+                     html.Div(html.B("Step 3: Group Ratio Check")),
+                     groupRatFormula,
+                     html.P(""),
+                     html.Div(html.B("Step 4: Disallowed Amount")),
+                     disallowed_amount
+                     ])
 
 
-                    ### Disallowance Formula not applied
-                    #### Interest Spare Capacity calculated here
+            ### Disallowance Formula not applied
+            #### Interest Spare Capacity calculated here
+            else:
+
+                ebcResponse = html.Div(
+                    [
+                        dbc.Row([
+                            dbc.Col([
+                                html.Div('Exceeding Borrowing Costs:', style={'font-size': '80%'})
+                            ], width=6),
+
+                            dbc.Col([
+                                html.Div('€{:,.2f}'.format(ebc1), style={'text-align': 'right', 'font-size': '80%'})
+                            ], width=2)
+                        ]),
+                        html.Div("As €{:,.2f} < 0: Disallowance not applied.".format(ebc1),
+                                 style={'font-size': '80%'})
+                    ])
+
+                groupRatFormula = html.Div("N/A")
+
+                intSpareCap = -ebc1 + intcalc
+                intSpareCapTax = intSpareCap * (corporate_tax / 100)
+
+                # retune other calculations
+                disFormula = "Not Assigned"
+                disAmount = 0
+                totSpareCap = 0
+                disAmountTax = disAmount * (corporate_tax / 100)
+                totSpareCapTax = totSpareCap * (corporate_tax / 100)
+
+                disallowed_amount = html.Div(
+                    [
+                        dbc.Row([
+                            dbc.Col([
+                                # html.Div(html.U('Amount:')),
+                                html.Div("Interest Spare Capacity:", style={'font-size': '80%'}),
+                                html.Div("LESS Exceeding Borrowing Costs:", style={'font-size': '80%'}),
+                                html.Div('Total:', style={'font-size': '80%'}),
+                                html.Div('@ 12.5%:', style={'font-size': '80%'}),
+
+                            ], width=6),
+
+                            dbc.Col([
+                                # html.Br(),
+                                html.Div('€{:,.2f}'.format(intcalc),
+                                         style={'text-align': 'right', 'font-size': '80%'}),
+                                html.Div(html.U('€{:,.2f}'.format(ebc1)),
+                                         style={'text-align': 'right', 'font-size': '80%'}),
+                                html.Div(html.B('€{:,.2f}'.format(intSpareCap)),
+                                         style={'text-align': 'right', 'font-size': '80%'}),
+                                html.Div(html.B('€{:,.2f}'.format(intSpareCapTax)),
+                                         style={'text-align': 'right', 'font-size': '80%'}),
+
+                            ], width=2)
+                        ]),
+                    ])
+
+                workings = html.Div(
+                    [html.Div(html.B("Step 1: Equity Ratio Test")),
+                     equityRatioResponse,
+                     html.P(""),
+                     html.Div(html.B("Step 2: Exceeding Borrowing Costs Test")),
+                     ebcResponse,
+                     html.P(""),
+                     html.Div(html.B("Step 3: Amount")),
+                     disallowed_amount
+                     ])
+
+    return workings
+
+##-------IMPORTING STORED VALUES CALLBACKS-------------------
+
+@dash_app.callback(
+    Output("equityRatioGrpCalc", "children"),
+    Input("equity_ratio_store_group", "data")
+)
+def disallowanceImport(data):
+    if data == [{}]:
+        return "No Equity Ratio Group Calculation retrieved yet"
+    else:
+        ergc = data[0]
+        try:
+            float(ergc["group"])
+            return "Group Calculation: {:.2f}%".format(100 * float(ergc["group"]))
+        except ValueError:
+            return "No Equity Ratio Group calculation saved yet"
+
+@dash_app.callback(
+    Output("equityRatioWrldCalc", "children"),
+    Input("equity_ratio_store_worldwide", "data")
+)
+def disallowanceImport(data):
+    if data == [{}]:
+        return "No Equity Ratio Worldwide calculation retrieved yet"
+    else:
+        erwc = data[0]
+        try:
+            float(erwc["worldwide"])
+            return "Worldwide Calculation: {:.2f}%".format(100 * float(erwc["worldwide"]))
+        except ValueError:
+            return "No Equity Ratio Worldwide calculation saved yet"
+
+@dash_app.callback(
+    Output("deMinimis", "children"),
+    Input("ebc_store_dm", "data")
+)
+def disallowanceImport(data):
+    if data == [{}]:
+        return "No Exceeding Borrowing Costs De Minimis calculation retrieved yet"
+    else:
+        ebc_dm = data[0]
+        return "Exceeding Borrowing Costs De Minimis: {}".format(ebc_dm["ebc_dm"])
+
+@dash_app.callback(
+    Output("ebctest", "children"),
+    Input("ebc_store", "data")
+)
+def disallowanceImport(data):
+    if data == [{}]:
+        return "No Exceeding Borrowing Costs calculation retrieved yet"
+    else:
+        ebc = data[0]
+        return "Exceeding Borrowing Costs: {}".format(ebc["ebc"])
+
+##-------DISALLOWANCE STORE CALLBACK---------------
+@dash_app.callback(
+    Output('disallowance_store', 'data'),
+    Input('ebc_store', 'data'),
+    Input('group_ratio_store', 'data'),
+    Input('tax_ebitda_store', 'data'),
+    Input('ebc_store_spareCap', 'data'),
+    Input('ebc_store_intcalc', 'data'),
+    Input('equity_ratio_store_group', 'data'),
+    Input('equity_ratio_store_worldwide', 'data'),
+    Input('tax_ebitda_store_lim_spare_cap', 'data')
+)
+### Limited Spare Capacity needed
+def return_disallowance(ebcPre, groupRatPre, ebitdaPre, iscPre, intcalcPre, erGroupPre, erWrldPre, lscPre):
+    # if n_clicks > 0:
+    # Call our formatting functions
+    if ebcPre != [{}] and groupRatPre != [{}] and ebitdaPre != [{}] and iscPre != [{}] and intcalcPre != [
+        {}] and erGroupPre != [{}] and erWrldPre != [{}] and lscPre != [{}]:
+        ebc = euroformatting(ebcPre, "ebc", 0)
+        groupRat = formatting(groupRatPre, "group_ratio", 0)
+        ebitda = euroformatting(ebitdaPre, "tax_ebitda", 0)
+        isc = formatting(iscPre, "spare_capacity", 0)
+        intcalc = formatting(intcalcPre, "intcalc", 0)
+        erGroup = formatting(erGroupPre, "group", 0)
+        erWrld = formatting(erWrldPre, "worldwide", 0)
+        lsc = formatting(lscPre, "limit_spare_capacity", 0)
+
+        # "Fails interest restrictions. Disallowance applied."
+        if erGroup == 0 and erWrld == 0:
+            data = html.H6("Equity Ratio Test not completed yet")
+        elif erGroup == 0 or erWrld == 0:
+            data = html.H6("Equity Ratio Test not fully completed yet")
+        else:
+            value = round(float(erGroup) / float(erWrld), 10)
+            if value <= .02:
+                data = "Passes Interest restrictions: No disallowance applied"
+            else:
+                ### If EBC Positive, apply disallowance formula
+                #### Disallowance and TotSpareCap returned (along with respective tax values)
+                if ebc > 0:
+                    # Check if group ratio or 30% is greater
+                    if groupRat > 0.3:
+                        disFormula = (groupRat * ebitda) + lsc + isc
                     else:
-                        intSpareCap = -ebc + intcalc
-                        intSpareCapTax = intSpareCap * (corporate_tax / 100)
+                        disFormula = (0.3 * ebitda) + lsc + isc
 
-                        # retune other calculations
-                        disFormula = "Not Assigned"
-                        disAmount = 0
+                    # Compare disallowance formula to EBC
+                    # Total Spare Capacity calculated here
+                    if disFormula < ebc:
+                        disAmount = ebc - disFormula
                         totSpareCap = 0
-                        disAmountTax = disAmount * (corporate_tax / 100)
-                        totSpareCapTax = totSpareCap * (corporate_tax / 100)
 
-                        data = [{'intSpareCap': intSpareCap, 'intSpareCapTax': intSpareCapTax}]
+                    else:
+                        disAmount = 0
+                        totSpareCap = ebc - disFormula
 
-            return data
+                    disAmountTax = disAmount * (corporate_tax / 100)
+                    totSpareCapTax = totSpareCap * (corporate_tax / 100)
+                    intSpareCap = 0
+                    intSpareCapTax = intSpareCap * (corporate_tax / 100)
 
-    ##-------------------------------SUMMARY CALLBACKS--------------------------
+                    data = [{'disAmount': disAmount, 'disAmountTax': disAmountTax, 'totSpareCap': totSpareCap,
+                             'totSpareCapTax': totSpareCapTax, 'intSpareCap': intSpareCap,
+                             'intSpareCapTax': intSpareCapTax}]
 
-    ##-------GET EBC VALUE FROM STORE CALLBACK-----------
-    @dash_app.callback(Output(component_id='summary-borrowing-calc-output', component_property='children'),
-                       Input('ebc_store', 'data'),
-                       )
-    def borrowing_costs(ebc):
-        if ebc == [{}]:
-            output = dbc.Row([
-                dbc.Col([html.Div("Exceeding Borrowing Costs:")], width=6),
-                dbc.Col([html.Div("Not yet calculated")], width=5)
-            ])
-            return output
-        else:
-            ebc_dict = ebc[0]
-            output = dbc.Row([
-                dbc.Col([html.Div("Exceeding Borrowing Costs:")], width=6),
-                dbc.Col([html.Div("{}".format(ebc_dict["ebc"]))], width=5)
-            ])
-            return output
 
-    ##------GET EBC DM VALUE FROM STORE CALLBACK----------
-    @dash_app.callback(Output(component_id='summary-borrowing-calc-output-dm', component_property='children'),
-                       Input('ebc_store_dm', 'data')
-                       )
-    def borrowing_costs(ebc_dm):
-        if ebc_dm == [{}]:
-            output = dbc.Row([
-                dbc.Col([html.Div("Exceeding Borrowing Costs for the De Minimis Exemption:")], width=6),
-                dbc.Col([html.Div("Not yet calculated")], width=5)
-            ])
-            return output
-        else:
-            ebc_dm_dict = ebc_dm[0]
-            output = dbc.Row([
-                dbc.Col([html.Div("Exceeding Borrowing Costs for the De Minimis Exemption:")], width=6),
-                dbc.Col([html.Div("{}".format(ebc_dm_dict["ebc_dm"]))], width=5)
-            ])
-            return output
+                ### Disallowance Formula not applied
+                #### Interest Spare Capacity calculated here
+                else:
+                    intSpareCap = -ebc + intcalc
+                    intSpareCapTax = intSpareCap * (corporate_tax / 100)
 
-    ##-------GET TAX EBITDA VALUE FROM STORE CALLBACK-----------
-    @dash_app.callback(Output(component_id='summary-tax-ebitda-output', component_property='children'),
-                       Input('tax_ebitda_store', 'data'))
-    def tax_ebitda_(tax_ebitda):
-        if tax_ebitda == [{}]:
-            output = dbc.Row([
-                dbc.Col([html.Div("Tax EBITDA:")], width=6),
-                dbc.Col([html.Div("Not yet calculated")], width=5)
-            ])
-            return output
-        else:
-            tax_ebitda_dict = tax_ebitda[0]
-            output = dbc.Row([
-                dbc.Col([html.Div("Tax EBITDA:")], width=6),
-                dbc.Col([html.Div("{}".format(tax_ebitda_dict['tax_ebitda']))], width=5)
-            ])
-            return output
+                    # retune other calculations
+                    disFormula = "Not Assigned"
+                    disAmount = 0
+                    totSpareCap = 0
+                    disAmountTax = disAmount * (corporate_tax / 100)
+                    totSpareCapTax = totSpareCap * (corporate_tax / 100)
 
-    ##-------GET GROUP RATIO VALUE FROM STORE CALLBACK-----------
-    @dash_app.callback(Output(component_id='summary-group-ratio-output', component_property='children'),
-                       Input('group_ratio_store', 'data'))
-    def group_ratio(group_ratio):
-        if group_ratio == [{}]:
+                    data = [{'intSpareCap': intSpareCap, 'intSpareCapTax': intSpareCapTax}]
+
+        return data
+
+##-------------------------------SUMMARY CALLBACKS--------------------------
+
+##-------GET EBC VALUE FROM STORE CALLBACK-----------
+@dash_app.callback(Output(component_id='summary-borrowing-calc-output', component_property='children'),
+                   Input('ebc_store', 'data'),
+                   )
+def borrowing_costs(ebc):
+    if ebc == [{}]:
+        output = dbc.Row([
+            dbc.Col([html.Div("Exceeding Borrowing Costs:")], width=6),
+            dbc.Col([html.Div("Not yet calculated")], width=5)
+        ])
+        return output
+    else:
+        ebc_dict = ebc[0]
+        output = dbc.Row([
+            dbc.Col([html.Div("Exceeding Borrowing Costs:")], width=6),
+            dbc.Col([html.Div("{}".format(ebc_dict["ebc"]))], width=5)
+        ])
+        return output
+
+##------GET EBC DM VALUE FROM STORE CALLBACK----------
+@dash_app.callback(Output(component_id='summary-borrowing-calc-output-dm', component_property='children'),
+                   Input('ebc_store_dm', 'data')
+                   )
+def borrowing_costs(ebc_dm):
+    if ebc_dm == [{}]:
+        output = dbc.Row([
+            dbc.Col([html.Div("Exceeding Borrowing Costs for the De Minimis Exemption:")], width=6),
+            dbc.Col([html.Div("Not yet calculated")], width=5)
+        ])
+        return output
+    else:
+        ebc_dm_dict = ebc_dm[0]
+        output = dbc.Row([
+            dbc.Col([html.Div("Exceeding Borrowing Costs for the De Minimis Exemption:")], width=6),
+            dbc.Col([html.Div("{}".format(ebc_dm_dict["ebc_dm"]))], width=5)
+        ])
+        return output
+
+##-------GET TAX EBITDA VALUE FROM STORE CALLBACK-----------
+@dash_app.callback(Output(component_id='summary-tax-ebitda-output', component_property='children'),
+                   Input('tax_ebitda_store', 'data'))
+def tax_ebitda_(tax_ebitda):
+    if tax_ebitda == [{}]:
+        output = dbc.Row([
+            dbc.Col([html.Div("Tax EBITDA:")], width=6),
+            dbc.Col([html.Div("Not yet calculated")], width=5)
+        ])
+        return output
+    else:
+        tax_ebitda_dict = tax_ebitda[0]
+        output = dbc.Row([
+            dbc.Col([html.Div("Tax EBITDA:")], width=6),
+            dbc.Col([html.Div("{}".format(tax_ebitda_dict['tax_ebitda']))], width=5)
+        ])
+        return output
+
+##-------GET GROUP RATIO VALUE FROM STORE CALLBACK-----------
+@dash_app.callback(Output(component_id='summary-group-ratio-output', component_property='children'),
+                   Input('group_ratio_store', 'data'))
+def group_ratio_(group_ratio):
+    if group_ratio == [{}]:
+        output = dbc.Row([
+            dbc.Col([html.Div("Group Ratio:")], width=6),
+            dbc.Col([html.Div("Not yet calculated")], width=5)
+        ])
+        return output
+    else:
+        group_ratio_dict = group_ratio[0]
+        try:
+            float(group_ratio_dict['group_ratio'])
             output = dbc.Row([
                 dbc.Col([html.Div("Group Ratio:")], width=6),
-                dbc.Col([html.Div("Not yet calculated")], width=5)
+                dbc.Col([html.Div("{:.2f}%".format(100 * float(group_ratio_dict['group_ratio'])))], width=5)
             ])
-            return output
-        else:
-            group_ratio_dict = group_ratio[0]
-            try:
-                float(group_ratio_dict['group_ratio'])
-                output = dbc.Row([
-                    dbc.Col([html.Div("Group Ratio:")], width=6),
-                    dbc.Col([html.Div("{:.2f}%".format(100 * float(group_ratio_dict['group_ratio'])))], width=5)
-                ])
-            except ValueError:
-                output = dbc.Row([
-                    dbc.Col([html.Div("Group Ratio:")], width=6),
-                    dbc.Col([html.Div("{}".format(group_ratio_dict['group_ratio']))], width=5)
-                ])
-            return output
+        except ValueError:
+            output = dbc.Row([
+                dbc.Col([html.Div("Group Ratio:")], width=6),
+                dbc.Col([html.Div("{}".format(group_ratio_dict['group_ratio']))], width=5)
+            ])
+        return output
 
-    ##-------GET EQUITY RATIO GROUP VALUE FROM STORE CALLBACK-----------
-    @dash_app.callback(Output(component_id='summary-equity-ratio-output-group', component_property='children'),
-                       Input('equity_ratio_store_group', 'data'))
-    def equity_ratio(equity_ratio):
-        if equity_ratio == [{}]:
+##-------GET EQUITY RATIO GROUP VALUE FROM STORE CALLBACK-----------
+@dash_app.callback(Output(component_id='summary-equity-ratio-output-group', component_property='children'),
+                   Input('equity_ratio_store_group', 'data'))
+def equity_ratio_(equity_ratio):
+    if equity_ratio == [{}]:
+        output = dbc.Row([
+            dbc.Col([html.Div("Interest Group Calculation:")], width=6),
+            dbc.Col([html.Div("Not yet calculated")], width=5)
+        ])
+        return output
+    else:
+        equity_ratio_dict_group = equity_ratio[0]
+        try:
+            float(equity_ratio_dict_group['group'])
+            group_value = float(equity_ratio_dict_group['group'])
             output = dbc.Row([
                 dbc.Col([html.Div("Interest Group Calculation:")], width=6),
-                dbc.Col([html.Div("Not yet calculated")], width=5)
+                dbc.Col([html.Div("{:.2f}%".format(100 * group_value))], width=5)
             ])
-            return output
-        else:
-            equity_ratio_dict_group = equity_ratio[0]
-            try:
-                float(equity_ratio_dict_group['group'])
-                group_value = float(equity_ratio_dict_group['group'])
-                output = dbc.Row([
-                    dbc.Col([html.Div("Interest Group Calculation:")], width=6),
-                    dbc.Col([html.Div("{:.2f}%".format(100 * group_value))], width=5)
-                ])
-            except ValueError:
-                group_value = equity_ratio_dict_group['group']
-                output = dbc.Row([
-                    dbc.Col([html.Div("Interest Group Calculation:")], width=6),
-                    dbc.Col([html.Div("{}".format(group_value))], width=5)
-                ])
-            return output
+        except ValueError:
+            group_value = equity_ratio_dict_group['group']
+            output = dbc.Row([
+                dbc.Col([html.Div("Interest Group Calculation:")], width=6),
+                dbc.Col([html.Div("{}".format(group_value))], width=5)
+            ])
+        return output
 
-    ##-------GET EQUITY RATIO WORLDWIDE VALUE FROM STORE CALLBACK-----------
-    @dash_app.callback(Output(component_id='summary-equity-ratio-output-worldwide', component_property='children'),
-                       Input('equity_ratio_store_worldwide', 'data'))
-    def equity_ratio(equity_ratio):
-        if equity_ratio == [{}]:
+##-------GET EQUITY RATIO WORLDWIDE VALUE FROM STORE CALLBACK-----------
+@dash_app.callback(Output(component_id='summary-equity-ratio-output-worldwide', component_property='children'),
+                   Input('equity_ratio_store_worldwide', 'data'))
+def equity_ratio_w(equity_ratio):
+    if equity_ratio == [{}]:
+        output = dbc.Row([
+            dbc.Col([html.Div("Worldwide Group Calculation:")], width=6),
+            dbc.Col([html.Div("Not yet calculated")], width=5)
+        ])
+        return output
+    else:
+        equity_ratio_dict_worldwide = equity_ratio[0]
+        try:
+            float(equity_ratio_dict_worldwide['worldwide'])
+            worldwide_value = float(equity_ratio_dict_worldwide['worldwide'])
             output = dbc.Row([
                 dbc.Col([html.Div("Worldwide Group Calculation:")], width=6),
-                dbc.Col([html.Div("Not yet calculated")], width=5)
+                dbc.Col([html.Div("{:.2f}%".format(100 * worldwide_value))], width=5)
             ])
-            return output
-        else:
-            equity_ratio_dict_worldwide = equity_ratio[0]
-            try:
-                float(equity_ratio_dict_worldwide['worldwide'])
-                worldwide_value = float(equity_ratio_dict_worldwide['worldwide'])
-                output = dbc.Row([
-                    dbc.Col([html.Div("Worldwide Group Calculation:")], width=6),
-                    dbc.Col([html.Div("{:.2f}%".format(100 * worldwide_value))], width=5)
-                ])
-            except ValueError:
-                worldwide_value = equity_ratio_dict_worldwide['worldwide']
-                output = dbc.Row([
-                    dbc.Col([html.Div("Worldwide Group Calculation:")], width=6),
-                    dbc.Col([html.Div("{}".format(worldwide_value))], width=5)
-                ])
-            return output
-
-    ##-------GET DISALLOWANCE FORMULA VALUE FROM STORE CALLBACK-----------
-    @dash_app.callback(Output(component_id='summary-disallowance-output', component_property='children'),
-                       Input('disallowance_store', 'data'),
-                       )
-    def disallowance(disallowance):
-        if disallowance == [{}]:
+        except ValueError:
+            worldwide_value = equity_ratio_dict_worldwide['worldwide']
             output = dbc.Row([
-                dbc.Col([html.Div("Not yet calculated")], width=6)
+                dbc.Col([html.Div("Worldwide Group Calculation:")], width=6),
+                dbc.Col([html.Div("{}".format(worldwide_value))], width=5)
             ])
-            return output
-        else:
-            if isinstance(disallowance, str):
-                output = disallowance
-                return output
-            else:
-                disallowanceDict = disallowance[0]
-                if len(disallowanceDict) == 2:
-                    output = html.Div([
-                        dbc.Row([
-                            dbc.Col([html.Div('')], width=6),
-                            dbc.Col([html.Div(html.B('Amount'))], width=3),
-                            dbc.Col([html.Div(html.B('Tax Value'))], width=3)
-                        ]),
-                        dbc.Row([
-                            dbc.Col([
-                                html.Div('Interest Spare Capacity: '),
-                            ], width=6),
-                            dbc.Col([
-                                html.Div('€{:,.2f}'.format(disallowanceDict["intSpareCap"])),
-                            ], width=3),
-                            dbc.Col([
-                                html.Div('€{:,.2f}'.format(disallowanceDict["intSpareCapTax"])),
+        return output
 
-                            ], width=3)
-                        ])
+##-------GET DISALLOWANCE FORMULA VALUE FROM STORE CALLBACK-----------
 
-                    ])
-                elif len(disallowanceDict) == 6:
-                    output = html.Div([
-                        dbc.Row([
-                            dbc.Col([html.Div("")], width=6),
-                            dbc.Col([html.Div(html.B("Amount"))], width=3),
-                            dbc.Col([html.Div(html.B("Tax Value"))], width=3),
-
-                        ]),
-                        dbc.Row([
-                            dbc.Col([html.Div("Disallowance Applied:")], width=6),
-                            dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["disAmount"]))], width=3),
-                            dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["disAmountTax"]))], width=3),
-                        ]),
-                        dbc.Row([
-                            dbc.Col([html.Div("Total Spare Capacity:")], width=6),
-                            dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["totSpareCap"]))], width=3),
-                            dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["totSpareCapTax"]))], width=3),
-                        ]),
-                        dbc.Row([
-                            dbc.Col([html.Div("Interest Spare Capacity:")], width=6),
-                            dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["intSpareCap"]))], width=3),
-                            dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["intSpareCapTax"]))], width=3),
-                        ])
-                    ])
-            return output
-
-
-
+# @dash_app.callback(Output(component_id='summary-disallowance-output', component_property='children'),
+#                    Input('disallowance_store', 'data'),
+#                    )
+# def disallowance_(disallowance):
+#     if disallowance == [{}]:
+#         output = dbc.Row([
+#             dbc.Col([html.Div("Not yet calculated")], width=6)
+#         ])
+#         return output
+#     else:
+#         if isinstance(disallowance, str):
+#             output = disallowance
+#             return output
+#         else:
+#             disallowanceDict = disallowance[0]
+#             if len(disallowanceDict) == 2:
+#                 output = html.Div([
+#                     dbc.Row([
+#                         dbc.Col([html.Div('')], width=6),
+#                         dbc.Col([html.Div(html.B('Amount'))], width=3),
+#                         dbc.Col([html.Div(html.B('Tax Value'))], width=3)
+#                     ]),
+#                     dbc.Row([
+#                         dbc.Col([
+#                             html.Div('Interest Spare Capacity: '),
+#                         ], width=6),
+#                         dbc.Col([
+#                             html.Div('€{:,.2f}'.format(disallowanceDict["intSpareCap"])),
+#                         ], width=3),
+#                         dbc.Col([
+#                             html.Div('€{:,.2f}'.format(disallowanceDict["intSpareCapTax"])),
+#
+#                         ], width=3)
+#                     ])
+#
+#                 ])
+#             elif len(disallowanceDict) == 6:
+#                 output = html.Div([
+#                     dbc.Row([
+#                         dbc.Col([html.Div("")], width=6),
+#                         dbc.Col([html.Div(html.B("Amount"))], width=3),
+#                         dbc.Col([html.Div(html.B("Tax Value"))], width=3),
+#
+#                     ]),
+#                     dbc.Row([
+#                         dbc.Col([html.Div("Disallowance Applied:")], width=6),
+#                         dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["disAmount"]))], width=3),
+#                         dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["disAmountTax"]))], width=3),
+#                     ]),
+#                     dbc.Row([
+#                         dbc.Col([html.Div("Total Spare Capacity:")], width=6),
+#                         dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["totSpareCap"]))], width=3),
+#                         dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["totSpareCapTax"]))], width=3),
+#                     ]),
+#                     dbc.Row([
+#                         dbc.Col([html.Div("Interest Spare Capacity:")], width=6),
+#                         dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["intSpareCap"]))], width=3),
+#                         dbc.Col([html.Div("€{:,.2f}".format(disallowanceDict["intSpareCapTax"]))], width=3),
+#                     ])
+#                 ])
+#         return output
 
     # callback - defines which page each URL sends the user to
-@dash_app.callback(Output('page-content', 'children'),
-                    Input('url', 'pathname'))
-def display_page(pathname):
-    if pathname == '/':
-        return home.layout
-    elif pathname == '/summary':
-        return summary.layout
-    elif pathname == '/exceeding-borrowing-costs':
-        return ebc.layout
-    elif pathname == '/tax-ebitda':
-        return Tax_EBITDA.layout
-    elif pathname == '/group-ratio':
-        return group_ratio.layout
-    elif pathname == '/equity-ratio':
-        return equity_ratio.layout
-    elif pathname == '/disallowance-formula':
-        return disallowance.layout
+
+
+# @dash_app.callback(Output('page-content', 'children'),
+#                    Input('url', 'pathname'))
+# def display_page(pathname):
+#     if pathname == '/':
+#         return home.layout
+#     elif pathname == '/summary':
+#         return summary.layout
+#     elif pathname == '/exceeding-borrowing-costs':
+#         return ebc.layout
+#     elif pathname == '/tax-ebitda':
+#         return Tax_EBITDA.layout
+#     elif pathname == '/group-ratio':
+#         return group_ratio.layout
+#     elif pathname == '/equity-ratio':
+#         return equity_ratio.layout
+#     elif pathname == '/disallowance-formula':
+#         return disallowance.layout
+#     else:
+#         return '404'
+#
+
+@dash_app.callback(
+    Output('page-content', 'children'),
+    Input('url', 'pathname'),
+    Input('login_store', 'data')
+)
+def display_page(pathname, loginID):
+    ## authentication test
+    if loginID == [{'uname': 'tax', 'passw': 'tax123'}]:
+        authentication = 'Y'
     else:
-        return '404'
+        authentication = 'N'
+
+    ## path mapping
+
+    if authentication == 'Y':
+        if pathname == '/':
+            return home.layout
+        if pathname == '/home':
+            return home.layout
+        elif pathname == '/exceeding-borrowing-costs':
+            return ebc.layout
+        elif pathname == '/tax-ebitda':
+            return Tax_EBITDA.layout
+        elif pathname == '/group-ratio':
+            return group_ratio.layout
+        elif pathname == '/equity-ratio':
+            return equity_ratio.layout
+        elif pathname == '/disallowance-formula':
+            return disallowance.layout
+        elif pathname == '/summary':
+            return summary.layout
+        else:
+            return '404'
+
+    if authentication == 'N':
+        if pathname == '/home':
+            return login.layout
+        elif pathname == '/exceeding-borrowing-costs':
+            return login.layout
+        elif pathname == '/tax-ebitda':
+            return login.layout
+        elif pathname == '/group-ratio':
+            return login.layout
+        elif pathname == '/equity-ratio':
+            return login.layout
+        elif pathname == '/disallowance-formula':
+            return login.layout
+        elif pathname == '/summary':
+            return login.layout
+        else:
+            return login.layout
 
 
 # to run the code
